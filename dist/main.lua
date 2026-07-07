@@ -4,7 +4,7 @@
     | |/ |/ / / _ \/ _  / /_/ // /  
     |__/|__/_/_//_/\_,_/\____/___/
     
-    v1.6.65  |  2026-07-01  |  Roblox UI Library for scripts
+    v1.6.65  |  2026-07-07  |  Roblox UI Library for scripts
     
     To view the source code, see the `src/` folder on the official GitHub repository.
     
@@ -526,6 +526,26 @@ ElementBackgroundHover=b:AddColor("ElementBackground","#ffffff",0.1),
 ElementTitle="Text",
 ElementDesc="Text",
 ElementIcon="Icon",
+
+RadioGroupBackground="ElementBackground",
+RadioGroupText="Text",
+RadioGroupBorder="Text",
+RadioGroupActive="Primary",
+
+CheckboxGroupBackground="ElementBackground",
+CheckboxGroupText="Text",
+CheckboxGroupBorder="Text",
+CheckboxGroupActive="Primary",
+CheckboxGroupIcon="White",
+
+SegmentedControlBackground="ElementBackground",
+SegmentedControlActive="Primary",
+SegmentedControlText="Text",
+
+StepperButton="ElementBackground",
+StepperValueBackground="ElementBackground",
+StepperIcon="Icon",
+StepperText="Text",
 
 PopupBackground="Background",
 PopupBackgroundTransparency="BackgroundTransparency",
@@ -4864,6 +4884,58 @@ af:Set(ag.value)
 end
 end
 },
+RadioGroup={
+Save=function(af)
+return{
+__type=af.__type,
+value=af.Get and af:Get()or af.Value,
+}
+end,
+Load=function(af,ag)
+if af and af.Select then
+af:Select(ag.value,false)
+end
+end
+},
+CheckboxGroup={
+Save=function(af)
+return{
+__type=af.__type,
+value=af.Get and af:Get()or af.Values,
+}
+end,
+Load=function(af,ag)
+if af and af.Set then
+af:Set(ag.value or{},false)
+end
+end
+},
+SegmentedControl={
+Save=function(af)
+return{
+__type=af.__type,
+value=af.Get and af:Get()or af.Value,
+}
+end,
+Load=function(af,ag)
+if af and af.Select then
+af:Select(ag.value,false)
+end
+end
+},
+TextArea={
+Save=function(af)
+return{
+__type=af.__type,
+value=af.Get and af:Get()or af.Value,
+}
+end,
+Load=function(af,ag)
+if af and af.Set then
+af:Set(ag.value or"",false)
+end
+end
+},
 Slider={
 Save=function(af)
 return{
@@ -4874,6 +4946,19 @@ end,
 Load=function(af,ag)
 if af and af.Set then
 af:Set(tonumber(ag.value))
+end
+end
+},
+Stepper={
+Save=function(af)
+return{
+__type=af.__type,
+value=af.Get and af:Get()or af.Value.Default,
+}
+end,
+Load=function(af,ag)
+if af and af.Set then
+af:Set(tonumber(ag.value),false)
 end
 end
 },
@@ -5177,6 +5262,7 @@ return ae.Configs[ag]
 end
 
 return ae end function a.A()
+
 local aa={}
 
 local ab=a.load'd'
@@ -10482,6 +10568,1232 @@ end
 
 return as end function a.T()
 
+local aa={}
+
+function aa.ToFiniteNumber(af)
+local ai=tonumber(af)
+if ai==nil or ai~=ai or math.abs(ai)==math.huge then
+return nil
+end
+
+return ai
+end
+
+function aa.FormatNumber(af)
+if af%1==0 then
+return tostring(af)
+end
+
+return tostring(tonumber(string.format("%.2f",af)))
+end
+
+function aa.NormalizeOptions(af)
+local ai={}
+
+for ak,al in next,af or{}do
+local am
+if typeof(al)=="table"then
+local an=al.Value
+if an==nil then
+an=al.Id or al.Key or al.Title or al.Name or ak
+end
+
+am={
+Title=tostring(al.Title or al.Name or an),
+Desc=al.Desc,
+Value=an,
+Icon=al.Icon,
+Disabled=al.Disabled==true,
+}
+else
+am={
+Title=tostring(al),
+Value=al,
+Disabled=false,
+}
+end
+
+table.insert(ai,am)
+end
+
+return ai
+end
+
+function aa.FindOption(af,ai)
+for ak,al in next,af or{}do
+if al.Value==ai then
+return al,ak
+end
+end
+
+return nil,nil
+end
+
+function aa.ContainsValue(af,ai)
+for ak,al in next,af or{}do
+if al==ai then
+return true
+end
+end
+
+return false
+end
+
+function aa.CloneArray(af)
+local ai={}
+for ak,al in next,af or{}do
+table.insert(ai,al)
+end
+return ai
+end
+
+function aa.NormalizeValues(af)
+if af==nil then
+return{}
+end
+
+if typeof(af)~="table"then
+return{af}
+end
+
+return aa.CloneArray(af)
+end
+
+function aa.ToggleValue(af,ai)
+local ak=aa.CloneArray(af)
+
+for al,am in next,ak do
+if am==ai then
+table.remove(ak,al)
+return ak,false
+end
+end
+
+table.insert(ak,ai)
+return ak,true
+end
+
+return aa end function a.U()
+
+local aa=a.load'd'
+local af=aa.New
+local ai=aa.Tween
+
+local ak=a.load'T'
+
+local al={}
+
+local function GetControlWidth(am)
+return math.max(ak.ToFiniteNumber(am.Width)or ak.ToFiniteNumber(am.ControlWidth)or 220,120)
+end
+
+function al.New(am,an)
+local ao={
+__type="RadioGroup",
+Title=an.Title or"Radio Group",
+Desc=an.Desc or nil,
+Locked=an.Locked or false,
+LockedTitle=an.LockedTitle,
+Options=ak.NormalizeOptions(an.Options or an.Values or{}),
+Value=an.Value,
+AllowNone=an.AllowNone==true,
+Callback=an.Callback or function()end,
+UIElements={},
+OptionFrames={},
+
+Width=GetControlWidth(an),
+}
+
+if ao.Value==nil then
+ao.Value=an.Default
+end
+if typeof(ao.Value)=="number"and ao.Options[ao.Value]then
+ao.Value=ao.Options[ao.Value].Value
+end
+if ao.Value==nil and not ao.AllowNone and ao.Options[1]then
+ao.Value=ao.Options[1].Value
+end
+
+local ap=true
+
+ao.RadioGroupFrame=a.load'C'{
+Title=ao.Title,
+Desc=ao.Desc,
+Parent=an.Parent,
+TextOffset=ao.Width+14,
+Hover=false,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=ao,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+ao.UIElements.Options=af("Frame",{
+Name="RadioGroupOptions",
+Size=UDim2.new(0,ao.Width,0,0),
+AutomaticSize="Y",
+Position=UDim2.new(1,0,an.Window.NewElements and 0 or 0.5,0),
+AnchorPoint=Vector2.new(1,an.Window.NewElements and 0 or 0.5),
+BackgroundTransparency=1,
+Parent=ao.RadioGroupFrame.UIElements.Main,
+},{
+af("UIListLayout",{
+Padding=UDim.new(0,6),
+FillDirection="Vertical",
+HorizontalAlignment="Right",
+SortOrder="LayoutOrder",
+}),
+})
+
+local function UpdateOptionVisuals(aq)
+for ar,as in next,ao.OptionFrames do
+local at=as.Option.Value==ao.Value
+local au=at and 0.84 or 0.94
+local av=at and 0 or 1
+local aw=as.Option.Disabled and 0.55 or(at and 0 or 0.18)
+
+if aq then
+ai(as.Row,0.12,{ImageTransparency=au}):Play()
+ai(as.Dot,0.12,{ImageTransparency=av}):Play()
+ai(as.Title,0.12,{TextTransparency=aw}):Play()
+else
+as.Row.ImageTransparency=au
+as.Dot.ImageTransparency=av
+as.Title.TextTransparency=aw
+end
+end
+end
+
+local function CreateOption(aq,ar)
+local as=aa.NewRoundFrame(99,"Circle",{
+Name="Dot",
+Size=UDim2.new(0,8,0,8),
+ImageTransparency=1,
+ThemeTag={
+ImageColor3="RadioGroupActive",
+},
+})
+
+local at=aa.NewRoundFrame(99,"CircleOutline",{
+Name="Ring",
+Size=UDim2.new(0,18,0,18),
+ImageTransparency=aq.Disabled and 0.75 or 0.45,
+ThemeTag={
+ImageColor3="RadioGroupBorder",
+},
+},{
+as,
+})
+as.Position=UDim2.new(0.5,0,0.5,0)
+as.AnchorPoint=Vector2.new(0.5,0.5)
+
+local au=af("TextLabel",{
+Name="Title",
+Size=UDim2.new(1,-28,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Text=aq.Title,
+TextSize=14,
+TextWrapped=true,
+TextXAlignment="Left",
+FontFace=Font.new(aa.Font,Enum.FontWeight.Medium),
+ThemeTag={
+TextColor3="RadioGroupText",
+},
+})
+
+local av=aa.NewRoundFrame(12,"Squircle",{
+Name="Option",
+Size=UDim2.new(1,0,0,36),
+LayoutOrder=ar,
+ImageTransparency=0.94,
+Active=not aq.Disabled,
+ThemeTag={
+ImageColor3="RadioGroupBackground",
+},
+},{
+af("UIListLayout",{
+Padding=UDim.new(0,10),
+FillDirection="Horizontal",
+VerticalAlignment="Center",
+HorizontalAlignment="Left",
+}),
+af("UIPadding",{
+PaddingLeft=UDim.new(0,10),
+PaddingRight=UDim.new(0,10),
+}),
+at,
+au,
+},true)
+
+av.Parent=ao.UIElements.Options
+
+local aw={
+Row=av,
+Ring=at,
+Dot=as,
+Title=au,
+Option=aq,
+}
+ao.OptionFrames[ar]=aw
+
+aa.AddSignal(av.MouseButton1Click,function()
+if not aq.Disabled then
+ao:Select(aq.Value)
+end
+end)
+end
+
+local function RenderOptions()
+for aq,ar in next,ao.OptionFrames do
+if ar.Row then
+ar.Row:Destroy()
+end
+end
+
+ao.OptionFrames={}
+
+for aq,ar in next,ao.Options do
+CreateOption(ar,aq)
+end
+
+UpdateOptionVisuals(false)
+end
+
+function ao.Lock(aq)
+ao.Locked=true
+ap=false
+return ao.RadioGroupFrame:Lock(ao.LockedTitle)
+end
+function ao.Unlock(aq)
+ao.Locked=false
+ap=true
+return ao.RadioGroupFrame:Unlock()
+end
+
+function ao.Get(aq)
+return ao.Value
+end
+
+function ao.Select(aq,ar,as)
+local at=ak.FindOption(ao.Options,ar)
+if not at and not ao.AllowNone then
+return ao.Value
+end
+if at and at.Disabled then
+return ao.Value
+end
+
+ao.Value=ar
+UpdateOptionVisuals(true)
+
+if ap and as~=false then
+aa.SafeCallback(ao.Callback,ar,at)
+end
+
+return ao.Value
+end
+
+function ao.SetOptions(aq,ar)
+ao.Options=ak.NormalizeOptions(ar)
+
+if not ak.FindOption(ao.Options,ao.Value)then
+ao.Value=ao.AllowNone and nil or(ao.Options[1]and ao.Options[1].Value)
+end
+
+RenderOptions()
+return ao.Options
+end
+
+RenderOptions()
+
+if ao.Locked then
+ao:Lock()
+end
+
+return ao.__type,ao
+end
+
+return al end function a.V()
+
+local aa=a.load'd'
+local af=aa.New
+local ai=aa.Tween
+
+local ak=a.load'T'
+
+local al={}
+
+local function GetControlWidth(am)
+return math.max(ak.ToFiniteNumber(am.Width)or ak.ToFiniteNumber(am.ControlWidth)or 220,120)
+end
+
+function al.New(am,an)
+local ao={
+__type="CheckboxGroup",
+Title=an.Title or"Checkbox Group",
+Desc=an.Desc or nil,
+Locked=an.Locked or false,
+LockedTitle=an.LockedTitle,
+Options=ak.NormalizeOptions(an.Options or an.Values or{}),
+Values=ak.NormalizeValues(an.ValuesSelected or an.SelectedValues or an.Value or an.ValuesDefault),
+Callback=an.Callback or function()end,
+UIElements={},
+OptionFrames={},
+
+Width=GetControlWidth(an),
+}
+
+local ap=true
+
+ao.CheckboxGroupFrame=a.load'C'{
+Title=ao.Title,
+Desc=ao.Desc,
+Parent=an.Parent,
+TextOffset=ao.Width+14,
+Hover=false,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=ao,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+ao.UIElements.Options=af("Frame",{
+Name="CheckboxGroupOptions",
+Size=UDim2.new(0,ao.Width,0,0),
+AutomaticSize="Y",
+Position=UDim2.new(1,0,an.Window.NewElements and 0 or 0.5,0),
+AnchorPoint=Vector2.new(1,an.Window.NewElements and 0 or 0.5),
+BackgroundTransparency=1,
+Parent=ao.CheckboxGroupFrame.UIElements.Main,
+},{
+af("UIListLayout",{
+Padding=UDim.new(0,6),
+FillDirection="Vertical",
+HorizontalAlignment="Right",
+SortOrder="LayoutOrder",
+}),
+})
+
+local function SanitizeValues(aq)
+local ar={}
+
+for as,at in next,aq or{}do
+local au=ak.FindOption(ao.Options,at)
+if au and not au.Disabled and not ak.ContainsValue(ar,at)then
+table.insert(ar,at)
+end
+end
+
+return ar
+end
+
+local function UpdateOptionVisuals(aq)
+for ar,as in next,ao.OptionFrames do
+local at=ak.ContainsValue(ao.Values,as.Option.Value)
+local au=at and 0.84 or 0.94
+local av=at and 0 or 1
+local aw=at and 0 or 1
+local ax=as.Option.Disabled and 0.55 or(at and 0 or 0.18)
+
+if aq then
+ai(as.Row,0.12,{ImageTransparency=au}):Play()
+ai(as.Fill,0.12,{ImageTransparency=av}):Play()
+ai(as.Icon,0.12,{ImageTransparency=aw}):Play()
+ai(as.Title,0.12,{TextTransparency=ax}):Play()
+else
+as.Row.ImageTransparency=au
+as.Fill.ImageTransparency=av
+as.Icon.ImageTransparency=aw
+as.Title.TextTransparency=ax
+end
+end
+end
+
+local function CreateOption(aq,ar)
+local as=aa.Icon"check"
+local at=af("ImageLabel",{
+Name="Check",
+Size=UDim2.new(0,12,0,12),
+Position=UDim2.new(0.5,0,0.5,0),
+AnchorPoint=Vector2.new(0.5,0.5),
+BackgroundTransparency=1,
+Image=as[1],
+ImageRectOffset=as[2].ImageRectPosition,
+ImageRectSize=as[2].ImageRectSize,
+ImageTransparency=1,
+ThemeTag={
+ImageColor3="CheckboxGroupIcon",
+},
+})
+
+local au=aa.NewRoundFrame(5,"Squircle",{
+Name="Fill",
+Size=UDim2.new(1,0,1,0),
+ImageTransparency=1,
+ThemeTag={
+ImageColor3="CheckboxGroupActive",
+},
+},{
+at,
+})
+
+local av=aa.NewRoundFrame(5,"SquircleOutline",{
+Name="Box",
+Size=UDim2.new(0,18,0,18),
+ImageTransparency=aq.Disabled and 0.75 or 0.45,
+ThemeTag={
+ImageColor3="CheckboxGroupBorder",
+},
+},{
+au,
+})
+
+local aw=af("TextLabel",{
+Name="Title",
+Size=UDim2.new(1,-28,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Text=aq.Title,
+TextSize=14,
+TextWrapped=true,
+TextXAlignment="Left",
+FontFace=Font.new(aa.Font,Enum.FontWeight.Medium),
+ThemeTag={
+TextColor3="CheckboxGroupText",
+},
+})
+
+local ax=aa.NewRoundFrame(12,"Squircle",{
+Name="Option",
+Size=UDim2.new(1,0,0,36),
+LayoutOrder=ar,
+ImageTransparency=0.94,
+Active=not aq.Disabled,
+ThemeTag={
+ImageColor3="CheckboxGroupBackground",
+},
+},{
+af("UIListLayout",{
+Padding=UDim.new(0,10),
+FillDirection="Horizontal",
+VerticalAlignment="Center",
+HorizontalAlignment="Left",
+}),
+af("UIPadding",{
+PaddingLeft=UDim.new(0,10),
+PaddingRight=UDim.new(0,10),
+}),
+av,
+aw,
+},true)
+
+ax.Parent=ao.UIElements.Options
+
+local ay={
+Row=ax,
+Fill=au,
+Icon=at,
+Title=aw,
+Option=aq,
+}
+ao.OptionFrames[ar]=ay
+
+aa.AddSignal(ax.MouseButton1Click,function()
+if not aq.Disabled then
+ao:Toggle(aq.Value)
+end
+end)
+end
+
+local function RenderOptions()
+for aq,ar in next,ao.OptionFrames do
+if ar.Row then
+ar.Row:Destroy()
+end
+end
+
+ao.OptionFrames={}
+
+for aq,ar in next,ao.Options do
+CreateOption(ar,aq)
+end
+
+ao.Values=SanitizeValues(ao.Values)
+UpdateOptionVisuals(false)
+end
+
+function ao.Lock(aq)
+ao.Locked=true
+ap=false
+return ao.CheckboxGroupFrame:Lock(ao.LockedTitle)
+end
+function ao.Unlock(aq)
+ao.Locked=false
+ap=true
+return ao.CheckboxGroupFrame:Unlock()
+end
+
+function ao.Get(aq)
+return ak.CloneArray(ao.Values)
+end
+
+function ao.Set(aq,ar,as)
+ao.Values=SanitizeValues(ak.NormalizeValues(ar))
+UpdateOptionVisuals(true)
+
+if ap and as~=false then
+aa.SafeCallback(ao.Callback,ao:Get())
+end
+
+return ao:Get()
+end
+
+function ao.Toggle(aq,ar,as)
+local at=ak.FindOption(ao.Options,ar)
+if not at or at.Disabled then
+return ao:Get()
+end
+
+ao.Values=ak.ToggleValue(ao.Values,ar)
+return ao:Set(ao.Values,as)
+end
+
+function ao.SetOptions(aq,ar)
+ao.Options=ak.NormalizeOptions(ar)
+RenderOptions()
+return ao.Options
+end
+
+RenderOptions()
+
+if ao.Locked then
+ao:Lock()
+end
+
+return ao.__type,ao
+end
+
+return al end function a.W()
+
+local aa=a.load'd'
+local af=aa.New
+local ai=aa.Tween
+
+local ak=a.load'T'
+
+local al={}
+
+local function GetControlWidth(am)
+return math.max(ak.ToFiniteNumber(am.Width)or ak.ToFiniteNumber(am.ControlWidth)or 220,120)
+end
+
+function al.New(am,an)
+local ao={
+__type="SegmentedControl",
+Title=an.Title or"Segmented Control",
+Desc=an.Desc or nil,
+Locked=an.Locked or false,
+LockedTitle=an.LockedTitle,
+Options=ak.NormalizeOptions(an.Options or an.Values or{}),
+Value=an.Value or an.Default,
+Callback=an.Callback or function()end,
+UIElements={},
+Segments={},
+
+Width=GetControlWidth(an),
+}
+
+if typeof(ao.Value)=="number"and ao.Options[ao.Value]then
+ao.Value=ao.Options[ao.Value].Value
+end
+if ao.Value==nil and ao.Options[1]then
+ao.Value=ao.Options[1].Value
+end
+
+local ap=true
+
+ao.SegmentedControlFrame=a.load'C'{
+Title=ao.Title,
+Desc=ao.Desc,
+Parent=an.Parent,
+TextOffset=ao.Width+14,
+Hover=false,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=ao,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+ao.UIElements.Container=aa.NewRoundFrame(13,"Squircle",{
+Name="SegmentedControl",
+Size=UDim2.new(0,ao.Width,0,36),
+Position=UDim2.new(1,0,an.Window.NewElements and 0 or 0.5,0),
+AnchorPoint=Vector2.new(1,an.Window.NewElements and 0 or 0.5),
+ImageTransparency=0.93,
+ThemeTag={
+ImageColor3="SegmentedControlBackground",
+},
+Parent=ao.SegmentedControlFrame.UIElements.Main,
+},{
+af("UIPadding",{
+PaddingTop=UDim.new(0,4),
+PaddingLeft=UDim.new(0,4),
+PaddingRight=UDim.new(0,4),
+PaddingBottom=UDim.new(0,4),
+}),
+})
+
+local function UpdateSegmentVisuals(aq)
+for ar,as in next,ao.Segments do
+local at=as.Option.Value==ao.Value
+local au=at and 0.82 or 1
+local av=as.Option.Disabled and 0.55 or(at and 0 or 0.25)
+
+if aq then
+ai(as.Button,0.12,{ImageTransparency=au}):Play()
+ai(as.Title,0.12,{TextTransparency=av}):Play()
+else
+as.Button.ImageTransparency=au
+as.Title.TextTransparency=av
+end
+end
+end
+
+local function CreateSegment(aq,ar,as)
+local at=4
+local au=math.max((ao.Width-8-(at*(as-1)))/math.max(as,1),24)
+
+local av=af("TextLabel",{
+Name="Title",
+Size=UDim2.new(1,-10,1,0),
+Position=UDim2.new(0.5,0,0.5,0),
+AnchorPoint=Vector2.new(0.5,0.5),
+BackgroundTransparency=1,
+Text=aq.Title,
+TextSize=13,
+TextTruncate="AtEnd",
+FontFace=Font.new(aa.Font,Enum.FontWeight.SemiBold),
+ThemeTag={
+TextColor3="SegmentedControlText",
+},
+})
+
+local aw=aa.NewRoundFrame(10,"Squircle",{
+Name="Segment",
+Size=UDim2.new(0,au,1,0),
+Position=UDim2.new(0,(ar-1)*(au+at)+4,0,4),
+ImageTransparency=1,
+Active=not aq.Disabled,
+ThemeTag={
+ImageColor3="SegmentedControlActive",
+},
+},{
+av,
+},true)
+
+aw.Parent=ao.UIElements.Container
+
+local ax={
+Button=aw,
+Title=av,
+Option=aq,
+}
+ao.Segments[ar]=ax
+
+aa.AddSignal(aw.MouseButton1Click,function()
+if not aq.Disabled then
+ao:Select(aq.Value)
+end
+end)
+end
+
+local function RenderSegments()
+for aq,ar in next,ao.Segments do
+if ar.Button then
+ar.Button:Destroy()
+end
+end
+
+ao.Segments={}
+
+local aq=#ao.Options
+for ar,as in next,ao.Options do
+CreateSegment(as,ar,aq)
+end
+
+UpdateSegmentVisuals(false)
+end
+
+function ao.Lock(aq)
+ao.Locked=true
+ap=false
+return ao.SegmentedControlFrame:Lock(ao.LockedTitle)
+end
+function ao.Unlock(aq)
+ao.Locked=false
+ap=true
+return ao.SegmentedControlFrame:Unlock()
+end
+
+function ao.Get(aq)
+return ao.Value
+end
+
+function ao.Select(aq,ar,as)
+local at=ak.FindOption(ao.Options,ar)
+if not at or at.Disabled then
+return ao.Value
+end
+
+ao.Value=ar
+UpdateSegmentVisuals(true)
+
+if ap and as~=false then
+aa.SafeCallback(ao.Callback,ar,at)
+end
+
+return ao.Value
+end
+
+function ao.SetOptions(aq,ar)
+ao.Options=ak.NormalizeOptions(ar)
+
+if not ak.FindOption(ao.Options,ao.Value)then
+ao.Value=ao.Options[1]and ao.Options[1].Value or nil
+end
+
+RenderSegments()
+return ao.Options
+end
+
+RenderSegments()
+
+if ao.Locked then
+ao:Lock()
+end
+
+return ao.__type,ao
+end
+
+return al end function a.X()
+
+local aa=a.load'd'
+
+local af=a.load'n'.New
+
+local ai={}
+
+function ai.New(ak,al)
+local am={
+__type="TextArea",
+Title=al.Title or"Text Area",
+Desc=al.Desc or nil,
+Locked=al.Locked or false,
+LockedTitle=al.LockedTitle,
+InputIcon=al.InputIcon or false,
+Placeholder=al.Placeholder or"Enter Text...",
+Value=al.Value or"",
+Callback=al.Callback or function()end,
+ClearTextOnFocus=al.ClearTextOnFocus or false,
+UIElements={},
+}
+
+local an=true
+
+am.TextAreaFrame=a.load'C'{
+Title=am.Title,
+Desc=am.Desc,
+Parent=al.Parent,
+TextOffset=0,
+Hover=false,
+Tab=al.Tab,
+Index=al.Index,
+Window=al.Window,
+ElementTable=am,
+ParentConfig=al,
+Tags=al.Tags,
+}
+
+local ao=af(
+am.Placeholder,
+am.InputIcon,
+am.TextAreaFrame.UIElements.Container,
+"Textarea",
+function(ao)
+am:Set(ao,true,true)
+end,
+nil,
+al.Window.NewElements and 12 or 10,
+am.ClearTextOnFocus
+)
+ao.Size=UDim2.new(1,0,0,al.Height or 148)
+ao.LayoutOrder=99
+
+local ap=ao.Frame.Frame.TextBox
+
+function am.Lock(aq)
+am.Locked=true
+an=false
+return am.TextAreaFrame:Lock(am.LockedTitle)
+end
+function am.Unlock(aq)
+am.Locked=false
+an=true
+return am.TextAreaFrame:Unlock()
+end
+
+function am.Get(aq)
+return am.Value
+end
+
+function am.Set(aq,ar,as,at)
+if not an then
+return am.Value
+end
+
+am.Value=tostring(ar or"")
+
+if not at then
+ap.Text=am.Value
+end
+
+if as~=false then
+aa.SafeCallback(am.Callback,am.Value)
+end
+
+return am.Value
+end
+
+function am.SetPlaceholder(aq,ar)
+am.Placeholder=tostring(ar or"")
+ap.PlaceholderText=am.Placeholder
+end
+
+am:Set(am.Value,false)
+
+if am.Locked then
+am:Lock()
+end
+
+return am.__type,am
+end
+
+return ai end function a.Y()
+
+local aa=a.load'd'
+local af=aa.New
+local ai=aa.Tween
+
+local ak=a.load'T'
+
+local al={}
+
+local function ReadValueConfig(am)
+local an=typeof(am.Value)=="table"and am.Value or{}
+local ao=ak.ToFiniteNumber(an.Min)or ak.ToFiniteNumber(am.Min)or 0
+local ap=ak.ToFiniteNumber(an.Max)or ak.ToFiniteNumber(am.Max)or 100
+
+if ao>ap then
+ao,ap=ap,ao
+end
+
+local aq=typeof(am.Value)=="number"and am.Value
+or ak.ToFiniteNumber(an.Default)
+or ak.ToFiniteNumber(am.Default)
+or ao
+local ar=ak.ToFiniteNumber(an.Increment)or ak.ToFiniteNumber(am.Increment)or 1
+
+return ao,ap,math.clamp(ak.ToFiniteNumber(aq)or ao,ao,ap),math.max(math.abs(ar),0.0001)
+end
+
+function al.New(am,an)
+local ao,ap,aq,ar=ReadValueConfig(an)
+
+local as={
+__type="Stepper",
+Title=an.Title or"Stepper",
+Desc=an.Desc or nil,
+Locked=an.Locked or false,
+LockedTitle=an.LockedTitle,
+Value={
+Min=ao,
+Max=ap,
+Default=aq,
+Increment=ar,
+},
+Callback=an.Callback or function()end,
+Format=an.Format,
+UIElements={},
+
+Width=math.max(ak.ToFiniteNumber(an.Width)or ak.ToFiniteNumber(an.ControlWidth)or 150,128),
+}
+
+local at=true
+
+as.StepperFrame=a.load'C'{
+Title=as.Title,
+Desc=as.Desc,
+Parent=an.Parent,
+TextOffset=as.Width+14,
+Hover=false,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=as,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+local function FormatValue(au)
+if typeof(as.Format)=="function"then
+local av,aw=pcall(as.Format,au,as.Value.Min,as.Value.Max)
+if av and aw~=nil then
+return tostring(aw)
+end
+end
+
+return ak.FormatNumber(au)
+end
+
+local function CreateIconButton(au,av)
+local aw=aa.Icon(av)
+local ax=af("ImageLabel",{
+Name="Icon",
+Size=UDim2.new(0,16,0,16),
+Position=UDim2.new(0.5,0,0.5,0),
+AnchorPoint=Vector2.new(0.5,0.5),
+BackgroundTransparency=1,
+Image=aw[1],
+ImageRectOffset=aw[2].ImageRectPosition,
+ImageRectSize=aw[2].ImageRectSize,
+ThemeTag={
+ImageColor3="StepperIcon",
+},
+})
+
+local ay=aa.NewRoundFrame(11,"Squircle",{
+Name=au,
+Size=UDim2.new(0,34,0,34),
+ImageTransparency=0.9,
+ThemeTag={
+ImageColor3="StepperButton",
+},
+},{
+ax,
+},true)
+
+return ay,ax
+end
+
+local au,av=CreateIconButton("Minus","minus")
+local aw,ax=CreateIconButton("Plus","plus")
+
+as.UIElements.ValueLabel=af("TextLabel",{
+Name="Value",
+Size=UDim2.new(1,-78,0,34),
+BackgroundTransparency=1,
+Text=FormatValue(as.Value.Default),
+TextSize=14,
+TextTruncate="AtEnd",
+FontFace=Font.new(aa.Font,Enum.FontWeight.SemiBold),
+ThemeTag={
+TextColor3="StepperText",
+},
+})
+
+local ay=aa.NewRoundFrame(11,"Squircle",{
+Name="ValueBackground",
+Size=UDim2.new(1,-78,0,34),
+ImageTransparency=0.94,
+ThemeTag={
+ImageColor3="StepperValueBackground",
+},
+},{
+as.UIElements.ValueLabel,
+})
+
+as.UIElements.Container=af("Frame",{
+Name="Stepper",
+Size=UDim2.new(0,as.Width,0,36),
+Position=UDim2.new(1,0,an.Window.NewElements and 0 or 0.5,0),
+AnchorPoint=Vector2.new(1,an.Window.NewElements and 0 or 0.5),
+BackgroundTransparency=1,
+Parent=as.StepperFrame.UIElements.Main,
+},{
+af("UIListLayout",{
+Padding=UDim.new(0,5),
+FillDirection="Horizontal",
+HorizontalAlignment="Right",
+VerticalAlignment="Center",
+}),
+au,
+ay,
+aw,
+})
+
+local function UpdateButtonStates(az)
+local aA=as.Value.Default<=as.Value.Min
+local aB=as.Value.Default>=as.Value.Max
+local b=aA and 0.7 or 0
+local d=aB and 0.7 or 0
+
+if az then
+ai(av,0.1,{ImageTransparency=b}):Play()
+ai(ax,0.1,{ImageTransparency=d}):Play()
+else
+av.ImageTransparency=b
+ax.ImageTransparency=d
+end
+end
+
+local function UpdateValue(az,aA)
+local aB=ak.ToFiniteNumber(az)
+if aB==nil then
+return as.Value.Default
+end
+
+as.Value.Default=math.clamp(aB,as.Value.Min,as.Value.Max)
+as.UIElements.ValueLabel.Text=FormatValue(as.Value.Default)
+UpdateButtonStates(true)
+
+if at and aA~=false then
+aa.SafeCallback(as.Callback,as.Value.Default)
+end
+
+return as.Value.Default
+end
+
+function as.Lock(az)
+as.Locked=true
+at=false
+return as.StepperFrame:Lock(as.LockedTitle)
+end
+function as.Unlock(az)
+as.Locked=false
+at=true
+return as.StepperFrame:Unlock()
+end
+
+function as.Get(az)
+return as.Value.Default
+end
+
+function as.Set(az,aA,aB)
+return UpdateValue(aA,aB)
+end
+
+function as.SetRange(az,aA,aB)
+aA=ak.ToFiniteNumber(aA)
+aB=ak.ToFiniteNumber(aB)
+
+if aA==nil or aB==nil then
+return as.Value.Min,as.Value.Max
+end
+
+if aA>aB then
+aA,aB=aB,aA
+end
+
+as.Value.Min=aA
+as.Value.Max=aB
+UpdateValue(as.Value.Default,false)
+
+return as.Value.Min,as.Value.Max
+end
+
+function as.SetMin(az,aA)
+as:SetRange(aA,math.max(ak.ToFiniteNumber(aA)or as.Value.Min,as.Value.Max))
+return as.Value.Min
+end
+
+function as.SetMax(az,aA)
+as:SetRange(math.min(as.Value.Min,ak.ToFiniteNumber(aA)or as.Value.Max),aA)
+return as.Value.Max
+end
+
+aa.AddSignal(au.MouseButton1Click,function()
+as:Set(as.Value.Default-as.Value.Increment)
+end)
+aa.AddSignal(aw.MouseButton1Click,function()
+as:Set(as.Value.Default+as.Value.Increment)
+end)
+
+UpdateButtonStates(false)
+
+if as.Locked then
+as:Lock()
+end
+
+return as.__type,as
+end
+
+return al end function a.Z()
+
+local aa={}
+
+local af={
+Info={
+Icon="info",
+Color=Color3.fromHex"#2563eb",
+},
+Success={
+Icon="circle-check",
+Color=Color3.fromHex"#16a34a",
+},
+Warning={
+Icon="triangle-alert",
+Color=Color3.fromHex"#d97706",
+},
+Error={
+Icon="circle-x",
+Color=Color3.fromHex"#dc2626",
+},
+}
+
+function aa.New(ai,ak)
+local al=ak.Variant or"Info"
+local am=af[al]or af.Info
+
+local an={
+__type="Callout",
+Title=ak.Title or al,
+Desc=ak.Desc or ak.Content,
+Icon=ak.Icon or am.Icon,
+Variant=al,
+Color=ak.Color or am.Color,
+UIElements={},
+}
+
+an.CalloutFrame=a.load'C'{
+Title=an.Title,
+Desc=an.Desc,
+Image=an.Icon,
+IconThemed=ak.IconThemed,
+Color=an.Color,
+Parent=ak.Parent,
+TextOffset=0,
+Hover=ak.Hover==true,
+Tab=ak.Tab,
+Index=ak.Index,
+Window=ak.Window,
+ElementTable=an,
+ParentConfig=ak,
+Tags=ak.Tags,
+Size=ak.Size,
+}
+
+return an.__type,an
+end
+
+return aa end function a._()
+
 local aa=a.load'd'
 local af=aa.New
 local ai=aa.Tween
@@ -10859,7 +12171,7 @@ end)
 return an.__type,an
 end
 
-return ak end function a.U()
+return ak end function a.aa()
 
 local aa=a.load'd'
 local af=aa.New
@@ -10876,7 +12188,7 @@ BackgroundTransparency=1,
 return"Space",{__type="Space",ElementFrame=am}
 end
 
-return ai end function a.V()
+return ai end function a.ab()
 local aa=a.load'd'
 local af=aa.New
 
@@ -10945,7 +12257,7 @@ end
 return am.__type,am
 end
 
-return ai end function a.W()
+return ai end function a.ac()
 local aa=a.load'd'
 local af=aa.New
 
@@ -11030,7 +12342,7 @@ al.Tab
 return am.__type,am
 end
 
-return ai end function a.X()
+return ai end function a.ad()
 local aa=a.load'd'
 local af=aa.New
 
@@ -11130,7 +12442,7 @@ end
 return am.__type,am
 end
 
-return ai end function a.Y()
+return ai end function a.ae()
 
 local aa=a.load'd'
 local af=aa.New
@@ -11217,7 +12529,7 @@ al.Tab
 return am.__type,am
 end
 
-return ai end function a.Z()
+return ai end function a.af()
 local aa=(cloneref or clonereference or function(aa)
 return aa
 end)
@@ -11453,7 +12765,7 @@ ao.Main=at
 return ao.__type,ao
 end
 
-return al end function a._()
+return al end function a.ag()
 
 return{
 Elements={
@@ -11467,14 +12779,20 @@ Input=a.load'L',
 Dropdown=a.load'O',
 Code=a.load'R',
 Colorpicker=a.load'S',
-Section=a.load'T',
+RadioGroup=a.load'U',
+CheckboxGroup=a.load'V',
+SegmentedControl=a.load'W',
+TextArea=a.load'X',
+Stepper=a.load'Y',
+Callout=a.load'Z',
+Section=a.load'_',
 Divider=a.load'M',
-Space=a.load'U',
-Image=a.load'V',
-Group=a.load'W',
-HStack=a.load'X',
-VStack=a.load'Y',
-Viewport=a.load'Z',
+Space=a.load'aa',
+Image=a.load'ab',
+Group=a.load'ac',
+HStack=a.load'ad',
+VStack=a.load'ae',
+Viewport=a.load'af',
 
 },
 Load=function(aa,af,ai,ak,al,am,an,ao,ap)
@@ -11603,7 +12921,7 @@ end
 end
 end
 end,
-}end function a.aa()
+}end function a.ah()
 
 local aa=(cloneref or clonereference or function(aa)
 return aa
@@ -12057,7 +13375,7 @@ end
 
 
 
-local aA=a.load'_'
+local aA=a.load'ag'
 
 aA.Load(
 ar,
@@ -12251,7 +13569,7 @@ ao.OnChangeFunc(aq)
 end
 end
 
-return ao end function a.ab()
+return ao end function a.ai()
 
 local aa={}
 
@@ -12260,7 +13578,7 @@ local af=a.load'd'
 local ai=af.New
 local ak=af.Tween
 
-local al=a.load'aa'
+local al=a.load'ah'
 
 function aa.New(am,an,ao,ap,aq)
 local ar={
@@ -12429,7 +13747,7 @@ return ar
 end
 
 
-return aa end function a.ac()
+return aa end function a.aj()
 return{
 Tab="table-of-contents",
 Paragraph="type",
@@ -12441,7 +13759,7 @@ Input="text-cursor-input",
 Dropdown="chevrons-up-down",
 Code="terminal",
 Colorpicker="palette",
-}end function a.ad()
+}end function a.ak()
 local aa=(cloneref or clonereference or function(aa)
 return aa
 end)
@@ -12465,7 +13783,7 @@ Radius=22,
 Width=400,
 MaxHeight=380,
 
-Icons=a.load'ac',
+Icons=a.load'aj',
 }
 
 local aq=ak("TextBox",{
@@ -12980,7 +14298,7 @@ end)
 return ap
 end
 
-return af end function a.ae()
+return af end function a.al()
 
 
 
@@ -14656,8 +15974,8 @@ if aw.OpenButton and typeof(aw.OpenButton)=="table"then
 aw:EditOpenButton(aw.OpenButton)
 end
 
-local C=a.load'aa'
-local F=a.load'ab'
+local C=a.load'ah'
+local F=a.load'ai'
 local G=C.Init(aw,av.WindUI,av.WindUI.TooltipGui)
 G:OnChange(function(H)
 aw.CurrentTab=H
@@ -15114,7 +16432,7 @@ end)
 
 
 if not aw.HideSearchBar then
-local Q=a.load'ad'
+local Q=a.load'ak'
 local R=false
 
 
@@ -15510,7 +16828,7 @@ aa:SetTheme"Dark"
 aa:SetLanguage(as.Language)
 
 function aa.CreateWindow(az,aA)
-local aB=a.load'ae'
+local aB=a.load'al'
 
 if not am:IsStudio()and writefile then
 if not isfolder"WindUI"then

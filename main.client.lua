@@ -124,6 +124,82 @@ local Grey = Color3.fromHex("#83889E")
 local Blue = Color3.fromHex("#257AF7")
 local Red = Color3.fromHex("#EF4F1D")
 
+-- */  Modern Controls  /* --
+do
+	local ModernTab = Window:Tab({
+		Title = "Modern Controls",
+		Desc = "New additive elements",
+		Icon = "sliders-horizontal",
+		IconColor = Blue,
+	})
+
+	ModernTab:Callout({
+		Title = "Modern controls pack",
+		Desc = "Additive components that keep old scripts compatible.",
+		Variant = "Info",
+	})
+
+	ModernTab:RadioGroup({
+		Title = "Mode",
+		Desc = "Choose one option",
+		Options = {
+			{ Title = "Legit", Value = "legit" },
+			{ Title = "Balanced", Value = "balanced" },
+			{ Title = "Fast", Value = "fast" },
+		},
+		Value = "balanced",
+		Callback = function(Value)
+			print("RadioGroup:", Value)
+		end,
+	})
+
+	ModernTab:CheckboxGroup({
+		Title = "Modules",
+		Desc = "Choose multiple options",
+		Options = {
+			{ Title = "Visuals", Value = "visuals" },
+			{ Title = "Movement", Value = "movement" },
+			{ Title = "Utility", Value = "utility" },
+		},
+		Value = { "visuals" },
+		Callback = function(Values)
+			print("CheckboxGroup:", table.concat(Values, ", "))
+		end,
+	})
+
+	ModernTab:SegmentedControl({
+		Title = "Profile",
+		Options = { "Low", "Medium", "High" },
+		Value = "Medium",
+		Callback = function(Value)
+			print("SegmentedControl:", Value)
+		end,
+	})
+
+	ModernTab:Stepper({
+		Title = "Amount",
+		Desc = "Incremental number input",
+		Value = {
+			Min = 1,
+			Max = 10,
+			Default = 3,
+			Increment = 1,
+		},
+		Callback = function(Value)
+			print("Stepper:", Value)
+		end,
+	})
+
+	ModernTab:TextArea({
+		Title = "Notes",
+		Placeholder = "Write a longer value...",
+		Value = "WindUI modern controls",
+		Callback = function(Value)
+			print("TextArea:", Value)
+		end,
+	})
+end
+
 -- */ Other Functions /* --
 local function parseJSON(luau_table, indent, level, visited)
 	indent = indent or 2

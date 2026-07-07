@@ -52,6 +52,26 @@ return function(Creator)
 		ElementDesc = "Text",
 		ElementIcon = "Icon",
 
+		RadioGroupBackground = "ElementBackground",
+		RadioGroupText = "Text",
+		RadioGroupBorder = "Text",
+		RadioGroupActive = "Primary",
+
+		CheckboxGroupBackground = "ElementBackground",
+		CheckboxGroupText = "Text",
+		CheckboxGroupBorder = "Text",
+		CheckboxGroupActive = "Primary",
+		CheckboxGroupIcon = "White",
+
+		SegmentedControlBackground = "ElementBackground",
+		SegmentedControlActive = "Primary",
+		SegmentedControlText = "Text",
+
+		StepperButton = "ElementBackground",
+		StepperValueBackground = "ElementBackground",
+		StepperIcon = "Icon",
+		StepperText = "Text",
+
 		PopupBackground = "Background",
 		PopupBackgroundTransparency = "BackgroundTransparency",
 		PopupTitle = "Text",

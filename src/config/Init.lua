@@ -65,6 +65,58 @@ ConfigManager = {
                 end
             end
         },
+        RadioGroup = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Select then
+                    element:Select(data.value, false)
+                end
+            end
+        },
+        CheckboxGroup = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.Values,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value or {}, false)
+                end
+            end
+        },
+        SegmentedControl = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Select then
+                    element:Select(data.value, false)
+                end
+            end
+        },
+        TextArea = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value or "", false)
+                end
+            end
+        },
         Slider = {
             Save = function(obj)
                 return {
@@ -75,6 +127,19 @@ ConfigManager = {
             Load = function(element, data)
                 if element and element.Set then
                     element:Set(tonumber(data.value))
+                end
+            end
+        },
+        Stepper = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.Value.Default,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(tonumber(data.value), false)
                 end
             end
         },
