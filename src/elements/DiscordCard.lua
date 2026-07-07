@@ -9,34 +9,63 @@ local Element = {}
 local DISCORD_BLURPLE = Color3.fromHex("#5865F2")
 local DISCORD_DARK = Color3.fromHex("#1E1F2A")
 
-local function GetInviteUrl(Config)
-	if Config.Url then
-		return Config.Url
+local function Trim(Text)
+	Text = tostring(Text or "")
+	Text = string.gsub(Text, "^%s+", "")
+	Text = string.gsub(Text, "%s+$", "")
+	return Text
+end
+
+local function GetInviteUrl(Value)
+	local Text = Trim(Value)
+	if Text == "" then
+		return "https://discord.gg/"
 	end
 
-	local Invite = Config.Invite or Config.InviteCode or Config.Code
-	if Invite then
-		return "https://discord.gg/" .. tostring(Invite)
+	if string.match(Text, "^https?://") then
+		return Text
+	end
+	if string.match(Text, "^discord%.gg/") or string.match(Text, "^discord%.com/invite/") then
+		return "https://" .. Text
 	end
 
-	return "https://discord.gg/"
+	return "https://discord.gg/" .. Text
 end
 
 local function CopyText(Text)
-	if setclipboard then
-		setclipboard(Text)
-		return true
+	if typeof(setclipboard) == "function" then
+		local Success = pcall(function()
+			setclipboard(Text)
+		end)
+		return Success
+	end
+	if typeof(toclipboard) == "function" then
+		local Success = pcall(function()
+			toclipboard(Text)
+		end)
+		return Success
 	end
 	return false
 end
 
+local function Notify(WindUI, Title, Content, Icon)
+	if WindUI and WindUI.Notify then
+		WindUI:Notify({
+			Title = Title,
+			Content = Content,
+			Icon = Icon,
+		})
+	end
+end
+
 function Element:New(Config)
-	local InviteUrl = GetInviteUrl(Config)
+	local Invite = Config.Url or Config.Invite or Config.InviteCode or Config.Code
+	local InviteUrl = GetInviteUrl(Invite)
 	local DiscordCard = {
 		__type = "DiscordCard",
 		Title = Config.Title or Config.ServerName or "Discord Server",
 		Desc = Config.Desc or Config.Content or "Join the community and get updates.",
-		Invite = Config.Invite or Config.InviteCode or Config.Code,
+		Invite = Invite,
 		Url = InviteUrl,
 		Icon = Config.Icon or "message-circle",
 		Members = Config.Members or Config.MemberCount,
@@ -269,41 +298,47 @@ function Element:New(Config)
 		return Button
 	end
 
-	CreateButton(Config.CopyTitle or "Copy Link", "link", "Secondary", function()
+	local function CopyInvite(Title)
 		if CopyText(DiscordCard.Url) then
-			Config.WindUI:Notify({
-				Title = "Discord link copied",
-				Content = DiscordCard.Url,
-				Icon = "check",
-			})
+			Notify(Config.WindUI, Title or "Discord link copied", DiscordCard.Url, "check")
+			return true
 		else
-			Config.WindUI:Notify({
-				Title = "Discord invite",
-				Content = DiscordCard.Url,
-				Icon = "link",
-			})
+			Notify(Config.WindUI, "Discord invite", DiscordCard.Url, "link")
+			return false
 		end
+	end
+
+	CreateButton(Config.CopyTitle or "Copy Link", "link", "Secondary", function()
+		CopyInvite("Discord link copied")
 	end)
 
 	CreateButton(Config.JoinTitle or "Join", "external-link", "Primary", function()
 		if DiscordCard.Callback then
-			Creator.SafeCallback(DiscordCard.Callback, DiscordCard.Url)
-			return
+			Creator.SafeCallback(DiscordCard.Callback, DiscordCard.Url, DiscordCard)
 		end
 
-		if not CopyText(DiscordCard.Url) then
-			Config.WindUI:Notify({
-				Title = "Discord invite",
-				Content = DiscordCard.Url,
-				Icon = "link",
-			})
-		end
+		CopyInvite("Discord invite ready")
 	end)
 
 	function DiscordCard:SetInvite(Invite)
 		DiscordCard.Invite = Invite
-		DiscordCard.Url = "https://discord.gg/" .. tostring(Invite or "")
+		DiscordCard.Url = GetInviteUrl(Invite)
 		return DiscordCard.Url
+	end
+
+	function DiscordCard:GetUrl()
+		return DiscordCard.Url
+	end
+
+	function DiscordCard:Copy()
+		return CopyInvite("Discord link copied")
+	end
+
+	function DiscordCard:Open()
+		if DiscordCard.Callback then
+			Creator.SafeCallback(DiscordCard.Callback, DiscordCard.Url, DiscordCard)
+		end
+		return CopyInvite("Discord invite ready")
 	end
 
 	function DiscordCard:SetTitle(Title)

@@ -52,9 +52,9 @@ function Element:New(Config)
 
 	TabBox.UIElements.Pages = New("Frame", {
 		Name = "Pages",
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = "Y",
+		Size = UDim2.new(1, 0, 0, 1),
 		BackgroundTransparency = 1,
+		ClipsDescendants = false,
 		Parent = TabBox.TabBoxFrame.UIElements.Container,
 	})
 
@@ -70,8 +70,29 @@ function Element:New(Config)
 	end
 
 	local function GetPageHeight(Page)
-		return Page.UIElements.Container.UIListLayout.AbsoluteContentSize.Y / Config.UIScale
-			+ (Config.Window.ElementConfig.UIPadding / 2)
+		local Layout = Page.UIElements.Container.UIListLayout
+		local Padding = Config.Window.ElementConfig.UIPadding / 2
+		local Height = Layout.AbsoluteContentSize.Y / Config.UIScale + Padding
+		return math.max(Height, Padding)
+	end
+
+	local function UpdatePageHeight(Page)
+		if not Page or not Page.UIElements.Container then
+			return
+		end
+
+		local Height = GetPageHeight(Page)
+		Page.UIElements.Container.Size = UDim2.new(1, 0, 0, Height)
+		TabBox.UIElements.Pages.Size = UDim2.new(1, 0, 0, Height)
+		return Height
+	end
+
+	local function QueuePageHeightUpdate(Page, Index)
+		task.defer(function()
+			if TabBox.Selected == Index and Page and Page.UIElements.Container.Parent then
+				UpdatePageHeight(Page)
+			end
+		end)
 	end
 
 	function TabBox:Select(Index)
@@ -85,11 +106,12 @@ function Element:New(Config)
 			local IsSelected = PageIndex == Index
 			OtherPage.UIElements.Container.Visible = IsSelected
 			OtherPage.UIElements.Container.Active = IsSelected
-			OtherPage.UIElements.Container.GroupTransparency = IsSelected and 1 or 1
+			OtherPage.UIElements.Container.GroupTransparency = 1
 		end
 
-		Page.UIElements.Container.Size = UDim2.new(1, 0, 0, math.max(GetPageHeight(Page), 0))
+		UpdatePageHeight(Page)
 		Motion.Play(Page.UIElements.Container, "Switch", { GroupTransparency = 0 }, nil, nil, "Page")
+		QueuePageHeightUpdate(Page, Index)
 		UpdateTabVisuals()
 		return Page
 	end
@@ -158,7 +180,6 @@ function Element:New(Config)
 			Name = "Page",
 			LayoutOrder = Index,
 			Size = UDim2.new(1, 0, 0, 0),
-			AutomaticSize = "Y",
 			BackgroundTransparency = 1,
 			GroupTransparency = 1,
 			Visible = false,
@@ -192,9 +213,7 @@ function Element:New(Config)
 			Config.Window,
 			Config.WindUI,
 			function()
-				if TabBox.Selected == Index then
-					Container.Size = UDim2.new(1, 0, 0, GetPageHeight(Page))
-				end
+				QueuePageHeightUpdate(Page, Index)
 			end,
 			Config.ElementsModule,
 			Config.UIScale,
@@ -228,9 +247,7 @@ function Element:New(Config)
 		end)
 
 		Creator.AddSignal(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
-			if TabBox.Selected == Index then
-				Container.Size = UDim2.new(1, 0, 0, GetPageHeight(Page))
-			end
+			QueuePageHeightUpdate(Page, Index)
 		end)
 
 		if not TabBox.Selected or TabConfig.Selected == true or TabConfig.Value == Config.Value then

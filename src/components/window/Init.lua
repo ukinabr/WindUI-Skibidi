@@ -921,37 +921,41 @@ return function(Config)
 		return IconFrame:FindFirstChildWhichIsA("ImageLabel") or IconFrame:FindFirstChildWhichIsA("ImageButton")
 	end
 
-	function Window:CreateTopbarButton(Name, Icon, Callback, LayoutOrder, IconThemed, Color, IconSize)
+	function Window:CreateTopbarButton(Name, Icon, Callback, LayoutOrder, IconThemed, Color, IconSize, Options)
 		local ButtonLayoutOrder = LayoutOrder or 999
+		Options = Options or {}
+		local ForceIconButton = Options.ForceIcon == true
+		local IsIconButton = Window.Topbar.ButtonsType == "Default" or ForceIconButton
+		local IsTrafficButton = Window.Topbar.ButtonsType ~= "Default" and not ForceIconButton
 		local IconFrame = Creator.Image(
 			Icon,
 			Icon,
 			0,
 			Window.Folder,
 			"WindowTopbarIcon",
-			Window.Topbar.ButtonsType == "Default" and true or false,
+			IsIconButton,
 			IconThemed,
 			"WindowTopbarButtonIcon"
 		)
-		IconFrame.Size = Window.Topbar.ButtonsType == "Default"
+		IconFrame.Size = IsIconButton
 				and UDim2.new(0, IconSize or Window.TopBarButtonIconSize, 0, IconSize or Window.TopBarButtonIconSize)
 			or UDim2.new(0, 0, 0, 0)
 		IconFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 		IconFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 		local IconTarget = GetImageTarget(IconFrame)
 		if IconTarget then
-			IconTarget.ImageTransparency = Window.Topbar.ButtonsType == "Default" and 0 or 1
+			IconTarget.ImageTransparency = IsIconButton and 0 or 1
 		end
 
-		if Window.Topbar.ButtonsType ~= "Default" and IconTarget then
+		if IsTrafficButton and IconTarget then
 			IconTarget.ImageColor3 = Creator.GetTextColorForHSB(Color or Color3.fromHex("#ff3030"))
 		end
 
 		local Button = Creator.NewRoundFrame(
-			Window.Topbar.ButtonsType == "Default" and Window.UICorner - (Window.UIPadding / 2) or 999,
+			IsIconButton and Window.UICorner - (Window.UIPadding / 2) or 999,
 			"Squircle",
 			{
-				Size = Window.Topbar.ButtonsType == "Default"
+				Size = IsIconButton
 						and UDim2.new(0, Window.Topbar.Height - 16, 0, Window.Topbar.Height - 16)
 					or UDim2.new(0, 14, 0, 14),
 				LayoutOrder = ButtonLayoutOrder,
@@ -960,11 +964,11 @@ return function(Config)
 				ZIndex = 9999,
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.new(0.5, 0, 0.5, 0),
-				ImageColor3 = Window.Topbar.ButtonsType ~= "Default" and (Color or Color3.fromHex("#ff3030")) or nil,
-				ThemeTag = Window.Topbar.ButtonsType == "Default" and {
+				ImageColor3 = IsTrafficButton and (Color or Color3.fromHex("#ff3030")) or nil,
+				ThemeTag = IsIconButton and {
 					ImageColor3 = "Text",
 				} or nil,
-				ImageTransparency = Window.Topbar.ButtonsType == "Default" and 1 or 0, -- .93
+				ImageTransparency = IsIconButton and 1 or 0, -- .93
 			},
 			{
 				--[[Creator.NewRoundFrame(
@@ -988,7 +992,7 @@ return function(Config)
 		)
 
 		local ButtonContainer = New("Frame", {
-			Size = Window.Topbar.ButtonsType ~= "Default" and UDim2.new(0, 24, 0, 24)
+			Size = IsTrafficButton and UDim2.new(0, 24, 0, 24)
 				or UDim2.new(0, Window.Topbar.Height - 16, 0, Window.Topbar.Height - 16),
 			BackgroundTransparency = 1,
 			Parent = Window.UIElements.Main.Main.Topbar.Right,
@@ -1010,7 +1014,7 @@ return function(Config)
 			end
 		end)
 		Creator.AddSignal(Button.MouseEnter, function()
-			if Window.Topbar.ButtonsType == "Default" then
+			if IsIconButton then
 				Motion.Play(Button, "Hover", { ImageTransparency = 0.93 }, nil, nil, "Hover")
 				--Tween(Button.Outline, 0.15, { ImageTransparency = 0.75 }):Play()
 				--Tween(IconFrame.ImageLabel, .15, {ImageTransparency = 0}):Play()
@@ -1040,7 +1044,7 @@ return function(Config)
 		end)
 
 		Creator.AddSignal(Button.MouseLeave, function()
-			if Window.Topbar.ButtonsType == "Default" then
+			if IsIconButton then
 				Motion.Play(Button, "Hover", { ImageTransparency = 1 }, nil, nil, "Hover")
 				--Tween(Button.Outline, 0.1, { ImageTransparency = 1 }):Play()
 				--Tween(IconFrame.ImageLabel, .1, {ImageTransparency = .2}):Play()
@@ -1080,6 +1084,7 @@ return function(Config)
 		IconThemed: boolean,
 		Color: Color3,
 		IconSize: number,
+		Options: table,
 	})
 		return Window:CreateTopbarButton(
 			ButtonConfig.Name,
@@ -1088,7 +1093,8 @@ return function(Config)
 			ButtonConfig.LayoutOrder or 0,
 			ButtonConfig.IconThemed,
 			ButtonConfig.Color,
-			ButtonConfig.IconSize
+			ButtonConfig.IconSize,
+			ButtonConfig.Options
 		)
 	end
 
@@ -1437,9 +1443,13 @@ return function(Config)
 			function()
 				SettingsMenu:Toggle()
 			end,
-			Window.Topbar.ButtonsType == "Default" and 997 or 998,
+			Window.Topbar.ButtonsType == "Default" and 997 or 1000,
 			true,
-			Color3.fromHex("#9B87F5")
+			Color3.fromHex("#9B87F5"),
+			nil,
+			{
+				ForceIcon = true,
+			}
 		)
 		SettingsMenu:SetButton(SettingsButton)
 		Window.SettingsMenu = SettingsMenu
