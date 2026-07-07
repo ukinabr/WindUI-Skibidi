@@ -46,6 +46,9 @@ return {
 				config.ParentTable = tbl
 				config.Index = #tbl.Elements + 1
 				config.GlobalIndex = #Window.AllElements + 1
+				if config.LinkCorners == nil then
+					config.LinkCorners = tbl.LinkCorners == true or (Tab and Tab.LinkCorners == true)
+				end
 				config.Parent = Container
 				config.Window = Window
 				config.WindUI = WindUI

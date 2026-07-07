@@ -59,8 +59,9 @@ function TabModule.New(Config, UIScale)
 		Elements = {},
 		ContainerFrame = nil,
 		UICorner = Window.UICorner - (Window.UIPadding / 2),
+		LinkCorners = Config.LinkCorners == true,
 
-		Gap = Window.ElementGap or (Window.NewElements and (Window.LiquidGlass and 6 or 1) or 6),
+		Gap = Config.Gap or Config.ElementGap or Window.ElementGap or (Window.NewElements and (Window.LiquidGlass and 6 or 1) or 6),
 
 		TabPaddingX = 4 + (Window.UIPadding / 2),
 		TabPaddingY = 3 + (Window.UIPadding / 2),

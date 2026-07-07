@@ -9,6 +9,7 @@ function Element:New(Config)
 		AutoSpace = Config.AutoSpace or false,
 		Elements = {},
 		ElementFrame = nil,
+		LinkCorners = Config.LinkCorners == true,
 		MinChildWidth = math.max(tonumber(Config.MinChildWidth) or 128, 40),
 	}
 

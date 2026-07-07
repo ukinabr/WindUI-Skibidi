@@ -17238,6 +17238,7 @@ local am={
 __type="Group",
 Elements={},
 ElementFrame=nil,
+LinkCorners=al.LinkCorners==true,
 }
 
 local an=af("Frame",{
@@ -17313,6 +17314,7 @@ return am.__type,am
 end
 
 return ai end function a.at()
+
 local aa=a.load'd'
 local af=aa.New
 
@@ -17324,6 +17326,7 @@ __type="HStack",
 AutoSpace=al.AutoSpace or false,
 Elements={},
 ElementFrame=nil,
+LinkCorners=al.LinkCorners==true,
 MinChildWidth=math.max(tonumber(al.MinChildWidth)or 128,40),
 }
 
@@ -17443,6 +17446,7 @@ local am={
 __type="VStack",
 Elements={},
 ElementFrame=nil,
+LinkCorners=al.LinkCorners==true,
 }
 
 local an=af("Frame",{
@@ -17519,6 +17523,7 @@ return am.__type,am
 end
 
 return ai end function a.av()
+
 local aa=(cloneref or clonereference or function(aa)
 return aa
 end)
@@ -17804,6 +17809,9 @@ at.ParentType=aa.__type
 at.ParentTable=aa
 at.Index=#aa.Elements+1
 at.GlobalIndex=#ak.AllElements+1
+if at.LinkCorners==nil then
+at.LinkCorners=aa.LinkCorners==true or(ap and ap.LinkCorners==true)
+end
 at.Parent=af
 at.Window=ak
 at.WindUI=al
@@ -17990,8 +17998,9 @@ UIElements={},
 Elements={},
 ContainerFrame=nil,
 UICorner=Window.UICorner-(Window.UIPadding/2),
+LinkCorners=aq.LinkCorners==true,
 
-Gap=Window.ElementGap or(Window.NewElements and(Window.LiquidGlass and 6 or 1)or 6),
+Gap=aq.Gap or aq.ElementGap or Window.ElementGap or(Window.NewElements and(Window.LiquidGlass and 6 or 1)or 6),
 
 TabPaddingX=4+(Window.UIPadding/2),
 TabPaddingY=3+(Window.UIPadding/2),

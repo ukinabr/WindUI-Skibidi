@@ -198,6 +198,77 @@ SettingsTab:Slider({
 	end,
 })
 
+local LinkedTab = Window:Tab({
+	Title = "Linked Corners",
+	Icon = "combine",
+	LinkCorners = true,
+	Gap = 1,
+})
+
+LinkedTab:Callout({
+	Title = "Linked Element Stack",
+	Desc = "This tab uses LinkCorners = true, so nearby elements share only the outside corners.",
+	Variant = "Info",
+})
+
+LinkedTab:Button({
+	Title = "Top Action",
+	Icon = "mouse-pointer-click",
+	Callback = function()
+		WindUI:Notify({
+			Title = "Linked corners",
+			Content = "Top element keeps only top corners rounded.",
+			Icon = "combine",
+		})
+	end,
+})
+
+LinkedTab:Toggle({
+	Title = "Middle Toggle",
+	Desc = "Middle element stays square while linked.",
+	Value = true,
+})
+
+LinkedTab:Slider({
+	Title = "Bottom Slider",
+	Value = {
+		Min = 0,
+		Max = 100,
+		Default = 64,
+		Increment = 1,
+	},
+})
+
+LinkedTab:Space()
+
+local LinkedRow = LinkedTab:HStack({
+	LinkCorners = true,
+	MinChildWidth = 72,
+})
+LinkedRow:Button({
+	Title = "Left",
+	Icon = "arrow-left",
+})
+LinkedRow:Button({
+	Title = "Center",
+	Icon = "minus",
+})
+LinkedRow:Button({
+	Title = "Right",
+	Icon = "arrow-right",
+})
+
+LinkedTab:Space()
+
+LinkedTab:KeyValue({
+	Title = "Corner Mode",
+	Items = {
+		{ Title = "Tab", Value = "LinkCorners" },
+		{ Title = "Gap", Value = "1px" },
+		{ Title = "Nested row", Value = "Left / Center / Right" },
+	},
+})
+
 local DiscordTab = Window:Tab({
 	Title = "Discord",
 	Icon = "message-circle",

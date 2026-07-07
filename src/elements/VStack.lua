@@ -8,6 +8,7 @@ function Element:New(Config)
         __type = "VStack",
         Elements = {},
         ElementFrame = nil,
+        LinkCorners = Config.LinkCorners == true,
     }
     
     local VStackFrame = New("Frame", {
