@@ -150,6 +150,17 @@ EmptyState:SetTitle("Still empty")
 EmptyState:SetDesc("Waiting")
 EmptyState:Highlight()
 
+local Discord = Tab:DiscordCard({
+	Title = "Discord",
+	Desc = "Invite card",
+	Invite = "example",
+	Members = 120,
+	Online = 24,
+})
+assert(Discord:SetInvite("new-code") == "https://discord.gg/new-code")
+Discord:SetTitle("Community")
+Discord:SetDesc("Updated invite card")
+
 local Section = Tab:Section({
 	Title = "Box",
 	Box = true,

@@ -84,6 +84,8 @@ return function(Creator)
 		TabBoxTabBackground = "ElementBackground",
 		TabBoxIcon = "Icon",
 		EmptyStateIcon = "Icon",
+		DiscordCardBackground = "ElementBackground",
+		DiscordCardAccent = "Primary",
 
 		PopupBackground = "Background",
 		PopupBackgroundTransparency = "BackgroundTransparency",

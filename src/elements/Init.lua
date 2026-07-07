@@ -24,6 +24,7 @@ return {
 		Timeline = require("./Timeline"),
 		Accordion = require("./Accordion"),
 		EmptyState = require("./EmptyState"),
+		DiscordCard = require("./DiscordCard"),
 		TabBox = require("./TabBox"),
 		Section = require("./Section"),
 		Divider = require("./Divider"),

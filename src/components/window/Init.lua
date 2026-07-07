@@ -65,6 +65,7 @@ return function(Config)
 		Acrylic = Config.Acrylic or false,
 		NewElements = Config.NewElements or false,
 		Motion = Config.Motion,
+		Settings = Config.Settings == false and false or (Config.Settings or {}),
 		IgnoreAlerts = Config.IgnoreAlerts or false,
 		HidePanelBackground = Config.HidePanelBackground or false,
 		AutoScale = Config.AutoScale ~= false,
@@ -908,7 +909,20 @@ return function(Config)
 		end)
 	end
 
+	local function GetImageTarget(IconFrame)
+		if typeof(IconFrame) ~= "Instance" then
+			return nil
+		end
+
+		if IconFrame:IsA("ImageLabel") or IconFrame:IsA("ImageButton") then
+			return IconFrame
+		end
+
+		return IconFrame:FindFirstChildWhichIsA("ImageLabel") or IconFrame:FindFirstChildWhichIsA("ImageButton")
+	end
+
 	function Window:CreateTopbarButton(Name, Icon, Callback, LayoutOrder, IconThemed, Color, IconSize)
+		local ButtonLayoutOrder = LayoutOrder or 999
 		local IconFrame = Creator.Image(
 			Icon,
 			Icon,
@@ -924,10 +938,13 @@ return function(Config)
 			or UDim2.new(0, 0, 0, 0)
 		IconFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 		IconFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-		IconFrame.ImageLabel.ImageTransparency = Window.Topbar.ButtonsType == "Default" and 0 or 1
+		local IconTarget = GetImageTarget(IconFrame)
+		if IconTarget then
+			IconTarget.ImageTransparency = Window.Topbar.ButtonsType == "Default" and 0 or 1
+		end
 
-		if Window.Topbar.ButtonsType ~= "Default" then
-			IconFrame.ImageLabel.ImageColor3 = Creator.GetTextColorForHSB(Color)
+		if Window.Topbar.ButtonsType ~= "Default" and IconTarget then
+			IconTarget.ImageColor3 = Creator.GetTextColorForHSB(Color or Color3.fromHex("#ff3030"))
 		end
 
 		local Button = Creator.NewRoundFrame(
@@ -937,7 +954,7 @@ return function(Config)
 				Size = Window.Topbar.ButtonsType == "Default"
 						and UDim2.new(0, Window.Topbar.Height - 16, 0, Window.Topbar.Height - 16)
 					or UDim2.new(0, 14, 0, 14),
-				LayoutOrder = LayoutOrder or 999,
+				LayoutOrder = ButtonLayoutOrder,
 				--Parent = Window.Topbar.ButtonsType == "Default" and Window.UIElements.Main.Main.Topbar.Right or nil,
 				--Active = true,
 				ZIndex = 9999,
@@ -975,14 +992,14 @@ return function(Config)
 				or UDim2.new(0, Window.Topbar.Height - 16, 0, Window.Topbar.Height - 16),
 			BackgroundTransparency = 1,
 			Parent = Window.UIElements.Main.Main.Topbar.Right,
-			LayoutOrder = LayoutOrder or 999,
+			LayoutOrder = ButtonLayoutOrder,
 		}, {
 			Button,
 		})
 
 		-- shhh
 
-		Window.TopBarButtons[100 - LayoutOrder] = {
+		Window.TopBarButtons[100 - ButtonLayoutOrder] = {
 			Name = Name,
 			Object = ButtonContainer,
 		}
@@ -1000,7 +1017,7 @@ return function(Config)
 			else
 				--Tween(Button, .1, {Size = UDim2.new(0,14+8,0,14+8)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
 				Motion.Play(
-					IconFrame.ImageLabel,
+					IconTarget,
 					"Hover",
 					{ ImageTransparency = 0 },
 					Enum.EasingStyle.Quint,
@@ -1030,7 +1047,7 @@ return function(Config)
 			else
 				--Tween(Button, .1, {Size = UDim2.new(0,14,0,14)}, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut):Play()
 				Motion.Play(
-					IconFrame.ImageLabel,
+					IconTarget,
 					"Hover",
 					{ ImageTransparency = 1 },
 					Enum.EasingStyle.Quint,
@@ -1411,6 +1428,22 @@ return function(Config)
 	local CurrentSize
 	local iconCopy = Creator.Icon("minimize")
 	local iconSquare = Creator.Icon("maximize")
+
+	if Window.Settings ~= false and Window.Topbar.Settings ~= false then
+		local SettingsMenu = require("./SettingsMenu").New(Window, Config.WindUI, Config)
+		local SettingsButton = Window:CreateTopbarButton(
+			"Settings",
+			"settings",
+			function()
+				SettingsMenu:Toggle()
+			end,
+			Window.Topbar.ButtonsType == "Default" and 997 or 998,
+			true,
+			Color3.fromHex("#9B87F5")
+		)
+		SettingsMenu:SetButton(SettingsButton)
+		Window.SettingsMenu = SettingsMenu
+	end
 
 	local FullscreenButton = Window:CreateTopbarButton(
 		"Fullscreen",

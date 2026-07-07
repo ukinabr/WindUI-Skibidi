@@ -1408,7 +1408,7 @@ if not RunService:IsStudio() and writefile and printidentity() then
 			Icon = "",
 			Justify = "Center",
 			Callback = function()
-				print(HttpService:JSONDecode(ConfigManager:GetAutoLoadConfigs()))
+				print(parseJSON(ConfigManager:GetAutoLoadConfigs()))
 			end,
 		})
 	end
@@ -1419,77 +1419,51 @@ do
 	local InviteCode = "ftgs-development-hub-1300692552005189632"
 	local DiscordAPI = "https://discord.com/api/v10/invites/" .. InviteCode .. "?with_counts=true&with_expiration=true"
 
-	local Response = WindUI.cloneref(game:GetService("HttpService"))
-		:JSONDecode(WindUI.Creator.Request and WindUI.Creator.Request({
-			Url = DiscordAPI,
-			Method = "GET",
-			Headers = {
-				["User-Agent"] = "WindUI/Example",
-				["Accept"] = "application/json",
-			},
-		}).Body or "{}")
+	local Response = {}
+	if not RunService:IsStudio() and WindUI.Creator.Request then
+		local Success, Result = pcall(function()
+			return WindUI.cloneref(game:GetService("HttpService")):JSONDecode(WindUI.Creator.Request({
+				Url = DiscordAPI,
+				Method = "GET",
+				Headers = {
+					["User-Agent"] = "WindUI/Example",
+					["Accept"] = "application/json",
+				},
+			}).Body or "{}")
+		end)
+
+		if Success and typeof(Result) == "table" then
+			Response = Result
+		end
+	end
 
 	local DiscordTab = OtherSection:Tab({
 		Title = "Discord",
+		Icon = "message-circle",
 		Border = true,
 	})
 
 	if Response and Response.guild then
-		DiscordTab:Section({
-			Title = "Join our Discord server!",
-			TextSize = 20,
-		})
-		local DiscordServerParagraph = DiscordTab:Paragraph({
+		DiscordTab:DiscordCard({
 			Title = tostring(Response.guild.name),
 			Desc = tostring(Response.guild.description),
-			Image = "https://cdn.discordapp.com/icons/"
-				.. Response.guild.id
-				.. "/"
-				.. Response.guild.icon
-				.. ".png?size=1024",
-			Thumbnail = "https://cdn.discordapp.com/banners/1300692552005189632/35981388401406a4b7dffd6f447a64c4.png?size=512",
-			ImageSize = 48,
-			Buttons = {
-				{
-					Title = "Copy link",
-					Icon = "link",
-					Callback = function()
-						setclipboard("https://discord.gg/" .. InviteCode)
-					end,
-				},
-			},
+			Invite = InviteCode,
+			Members = Response.approximate_member_count,
+			Online = Response.approximate_presence_count,
 		})
 	elseif RunService:IsStudio() or not writefile then
-		DiscordTab:Paragraph({
-			Title = "Discord API is not available in Studio mode.",
-			TextSize = 20,
-			Justify = "Center",
-			Image = "solar:info-circle-bold",
-			Color = "Red",
-			Buttons = {
-				{
-					Title = "Get/Copy Invite Link",
-					Icon = "link",
-					Callback = function()
-						if setclipboard then
-							setclipboard("https://discord.gg/" .. InviteCode)
-						else
-							WindUI:Notify({
-								Title = "Discord Invite Link",
-								Content = "https://discord.gg/" .. InviteCode,
-							})
-						end
-					end,
-				},
-			},
+		DiscordTab:DiscordCard({
+			Title = "Join our Discord server",
+			Desc = "Discord API is not available in Studio, but the invite is ready to copy.",
+			Invite = InviteCode,
+			Icon = "info",
 		})
 	else
-		DiscordTab:Paragraph({
-			Title = "Failed to fetch Discord server info.",
-			TextSize = 20,
-			Justify = "Center",
-			Image = "solar:info-circle-bold",
-			Color = "Red",
+		DiscordTab:DiscordCard({
+			Title = "Join our Discord server",
+			Desc = "Failed to fetch live server info. Use the invite link below.",
+			Invite = InviteCode,
+			Icon = "triangle-alert",
 		})
 	end
 end
