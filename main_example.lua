@@ -332,6 +332,20 @@ LinkedRow:Button({
 
 LinkedTab:Space()
 
+local LinkedStack = LinkedTab:VStack({
+	LinkCorners = true,
+})
+LinkedStack:Button({
+	Title = "Stack Save",
+	Icon = "save",
+})
+LinkedStack:Button({
+	Title = "Stack Load",
+	Icon = "download",
+})
+
+LinkedTab:Space()
+
 LinkedTab:KeyValue({
 	Title = "Corner Mode",
 	Items = {
@@ -424,12 +438,11 @@ local Controls = BoxTabs:Tab({
 	Title = "Controls",
 	Icon = "sliders-horizontal",
 })
-local ControlRow = Controls:HStack()
-ControlRow:Stepper({
+Controls:Stepper({
 	Title = "Amount",
 	Desc = "Hybrid step control",
 	Flag = "control-amount",
-	Width = 188,
+	Width = 210,
 	Value = {
 		Min = 1,
 		Max = 10,
@@ -437,14 +450,38 @@ ControlRow:Stepper({
 		Increment = 1,
 	},
 })
-ControlRow:Toggle({
+Controls:Toggle({
 	Title = "Pulse",
+	Desc = "Single-row toggle without HStack spacing.",
 	Value = true,
+})
+Controls:MeterGroup({
+	Title = "Motion Budget",
+	Desc = "Grouped meters stay full-width on mobile.",
+	Meters = {
+		{ Title = "Input", Value = 64, Color = "#0091FF" },
+		{ Title = "Tween", Value = 82, Color = "#22C55E" },
+		{ Title = "Layout", Value = 46, Color = "#F59E0B" },
+	},
 })
 Controls:ChipList({
 	Title = "Filters",
 	Options = { "Motion", "Mobile", "Glass" },
 	Value = { "Motion", "Glass" },
+})
+Controls:ActionList({
+	Title = "Quick Actions",
+	Actions = {
+		{ Title = "Replay path", Icon = "rotate-ccw", Value = "Run" },
+		{ Title = "Compact mode", Icon = "panel-top", Value = "Mobile" },
+	},
+	Callback = function(Action)
+		WindUI:Notify({
+			Title = "Action",
+			Content = Action.Title,
+			Icon = Action.Icon or "sparkles",
+		})
+	end,
 })
 Controls:Path2D({
 	Title = "Control Path",

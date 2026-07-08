@@ -21,6 +21,8 @@ return {
 		StatCard = require("./StatCard"),
 		KeyValue = require("./KeyValue"),
 		ChipList = require("./ChipList"),
+		ActionList = require("./ActionList"),
+		MeterGroup = require("./MeterGroup"),
 		Timeline = require("./Timeline"),
 		Accordion = require("./Accordion"),
 		EmptyState = require("./EmptyState"),

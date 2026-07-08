@@ -17041,6 +17041,454 @@ local ak=a.load'af'
 
 local al={}
 
+local function NormalizeActions(am)
+local an={}
+
+for ao,ap in next,am or{}do
+if typeof(ap)=="table"then
+table.insert(an,{
+Title=tostring(ap.Title or ap.Name or ap.Value or("Action "..tostring(ao))),
+Desc=ap.Desc or ap.Content,
+Value=ap.Value or ap.Badge,
+Icon=ap.Icon,
+Color=ak.GetColor(ap.Color,nil),
+Disabled=ap.Disabled==true,
+Callback=ap.Callback,
+})
+else
+table.insert(an,{
+Title=tostring(ap),
+Disabled=false,
+})
+end
+end
+
+return an
+end
+
+function al.New(am,an)
+local ao={
+__type="ActionList",
+Title=an.Title or"Actions",
+Desc=an.Desc,
+Actions=NormalizeActions(an.Actions or an.Items or an.Values or{}),
+Rows={},
+UIElements={},
+}
+
+ao.ActionListFrame=a.load'I'{
+Title=ao.Title,
+Desc=ao.Desc,
+Parent=an.Parent,
+TextOffset=0,
+Hover=an.Hover==true,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=ao,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+ao.UIElements.List=ai("Frame",{
+Name="ActionList",
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Parent=ao.ActionListFrame.UIElements.Container,
+},{
+ai("UIListLayout",{
+Padding=UDim.new(0,an.Window.NewElements and 6 or 8),
+FillDirection="Vertical",
+HorizontalAlignment="Left",
+SortOrder="LayoutOrder",
+}),
+})
+
+local function Render()
+for ap,aq in next,ao.Rows do
+aq:Destroy()
+end
+ao.Rows={}
+
+for ap,aq in next,ao.Actions do
+local ar=ak.CreateIcon(aa,aq.Icon or"circle-dot",an.Window.Folder,"ActionList",true,"ActionListIcon")
+if ar then
+ar.Size=UDim2.fromOffset(17,17)
+end
+local as=ak.GetImageTarget(ar)
+if as and aq.Color then
+as.ImageColor3=aq.Color
+end
+
+local at=ai("Frame",{
+Name="Texts",
+Size=UDim2.new(1,aq.Value and-96 or-42,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+},{
+ai("UIListLayout",{
+Padding=UDim.new(0,2),
+FillDirection="Vertical",
+HorizontalAlignment="Left",
+}),
+ai("TextLabel",{
+Name="Title",
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Text=aq.Title,
+TextSize=14,
+TextTransparency=aq.Disabled and 0.46 or 0.04,
+TextXAlignment="Left",
+TextTruncate="AtEnd",
+FontFace=Font.new(aa.Font,Enum.FontWeight.SemiBold),
+ThemeTag={
+TextColor3="Text",
+},
+}),
+aq.Desc and ai("TextLabel",{
+Name="Desc",
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Text=tostring(aq.Desc),
+TextSize=12,
+TextTransparency=aq.Disabled and 0.62 or 0.38,
+TextXAlignment="Left",
+TextWrapped=true,
+FontFace=Font.new(aa.Font,Enum.FontWeight.Medium),
+ThemeTag={
+TextColor3="Text",
+},
+})or nil,
+})
+
+local au
+if aq.Value~=nil then
+au=aa.NewRoundFrame(999,"Squircle",{
+Name="Value",
+Size=UDim2.new(0,0,0,26),
+AutomaticSize="X",
+ImageTransparency=0.88,
+ThemeTag={
+ImageColor3="ElementBackground",
+},
+},{
+ai("UIPadding",{
+PaddingLeft=UDim.new(0,10),
+PaddingRight=UDim.new(0,10),
+}),
+ai("TextLabel",{
+Size=UDim2.new(0,0,1,0),
+AutomaticSize="X",
+BackgroundTransparency=1,
+Text=tostring(aq.Value),
+TextSize=12,
+TextTransparency=0.12,
+FontFace=Font.new(aa.Font,Enum.FontWeight.Bold),
+ThemeTag={
+TextColor3="Text",
+},
+}),
+})
+end
+
+local av=aa.NewRoundFrame(14,"Squircle",{
+Name="Action",
+LayoutOrder=ap,
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+ImageTransparency=aq.Disabled and 0.96 or 0.92,
+Parent=ao.UIElements.List,
+ThemeTag={
+ImageColor3="ElementBackground",
+},
+},{
+ai("UIPadding",{
+PaddingTop=UDim.new(0,10),
+PaddingLeft=UDim.new(0,10),
+PaddingRight=UDim.new(0,10),
+PaddingBottom=UDim.new(0,10),
+}),
+ai("UIListLayout",{
+Padding=UDim.new(0,10),
+FillDirection="Horizontal",
+VerticalAlignment="Center",
+HorizontalAlignment="Left",
+}),
+ar,
+at,
+au,
+},not aq.Disabled)
+
+if not aq.Disabled then
+af.AttachPress(av,aa,{
+Amount=0.985,
+})
+aa.AddSignal(av.MouseButton1Click,function()
+if typeof(aq.Callback)=="function"then
+aa.SafeCallback(aq.Callback,aq,ap)
+elseif typeof(an.Callback)=="function"then
+aa.SafeCallback(an.Callback,aq,ap)
+end
+end)
+end
+
+table.insert(ao.Rows,av)
+end
+end
+
+function ao.SetActions(ap,aq)
+ao.Actions=NormalizeActions(aq)
+Render()
+return ao.Actions
+end
+
+function ao.AddAction(ap,aq)
+local ar=NormalizeActions{aq}[1]
+if ar then
+table.insert(ao.Actions,ar)
+Render()
+end
+return ar
+end
+
+Render()
+
+return ao.__type,ao
+end
+
+return al end function a.am()
+
+local aa=a.load'd'
+local af=a.load'e'
+local ai=aa.New
+
+local ak=a.load'af'
+
+local al={}
+
+local function NormalizeMeters(am)
+local an={}
+
+for ao,ap in next,am or{}do
+if typeof(ap)=="table"then
+local aq=ak.ToFiniteNumber(ap.Max)or 100
+local ar=ak.ToFiniteNumber(ap.Value or ap.Default)or 0
+table.insert(an,{
+Title=tostring(ap.Title or ap.Name or("Meter "..tostring(ao))),
+Value=math.clamp(ar,0,aq),
+Max=math.max(aq,0.0001),
+Desc=ap.Desc,
+Color=ak.GetColor(ap.Color,nil),
+Format=ap.Format,
+})
+else
+table.insert(an,{
+Title=tostring(ao),
+Value=math.clamp(ak.ToFiniteNumber(ap)or 0,0,100),
+Max=100,
+})
+end
+end
+
+return an
+end
+
+function al.New(am,an)
+local ao={
+__type="MeterGroup",
+Title=an.Title or"Meters",
+Desc=an.Desc,
+Meters=NormalizeMeters(an.Meters or an.Items or an.Values or{}),
+Rows={},
+UIElements={},
+}
+
+ao.MeterGroupFrame=a.load'I'{
+Title=ao.Title,
+Desc=ao.Desc,
+Parent=an.Parent,
+TextOffset=0,
+Hover=an.Hover==true,
+Tab=an.Tab,
+Index=an.Index,
+Window=an.Window,
+ElementTable=ao,
+ParentConfig=an,
+Tags=an.Tags,
+}
+
+ao.UIElements.List=ai("Frame",{
+Name="MeterGroup",
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Parent=ao.MeterGroupFrame.UIElements.Container,
+},{
+ai("UIListLayout",{
+Padding=UDim.new(0,10),
+FillDirection="Vertical",
+HorizontalAlignment="Left",
+SortOrder="LayoutOrder",
+}),
+})
+
+local function FormatValue(ap)
+local aq=math.clamp(ap.Value/ap.Max,0,1)
+if typeof(ap.Format)=="function"then
+local ar,as=pcall(ap.Format,ap.Value,ap.Max,aq)
+if ar and as~=nil then
+return tostring(as)
+end
+end
+return tostring(math.floor((aq*100)+0.5)).."%"
+end
+
+local function Render()
+for ap,aq in next,ao.Rows do
+aq.Frame:Destroy()
+end
+ao.Rows={}
+
+for ap,aq in next,ao.Meters do
+local ar=math.clamp(aq.Value/aq.Max,0,1)
+local as=aa.NewRoundFrame(999,"Squircle",{
+Name="Fill",
+Size=UDim2.new(ar,0,1,0),
+ImageTransparency=0.08,
+ImageColor3=aq.Color,
+ThemeTag=not aq.Color and{
+ImageColor3="Primary",
+}or nil,
+})
+
+local at=ai("TextLabel",{
+Name="Value",
+Size=UDim2.new(0,52,0,18),
+BackgroundTransparency=1,
+Text=FormatValue(aq),
+TextSize=12,
+TextTransparency=0.22,
+TextXAlignment="Right",
+FontFace=Font.new(aa.Font,Enum.FontWeight.Bold),
+ThemeTag={
+TextColor3="Text",
+},
+})
+
+local au=ai("Frame",{
+Name="Meter",
+LayoutOrder=ap,
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Parent=ao.UIElements.List,
+},{
+ai("UIListLayout",{
+Padding=UDim.new(0,6),
+FillDirection="Vertical",
+HorizontalAlignment="Left",
+}),
+ai("Frame",{
+Name="Header",
+Size=UDim2.new(1,0,0,18),
+BackgroundTransparency=1,
+},{
+ai("UIListLayout",{
+FillDirection="Horizontal",
+VerticalAlignment="Center",
+}),
+ai("TextLabel",{
+Name="Title",
+Size=UDim2.new(1,-58,1,0),
+BackgroundTransparency=1,
+Text=aq.Title,
+TextSize=13,
+TextTransparency=0.1,
+TextXAlignment="Left",
+TextTruncate="AtEnd",
+FontFace=Font.new(aa.Font,Enum.FontWeight.SemiBold),
+ThemeTag={
+TextColor3="Text",
+},
+}),
+at,
+}),
+aa.NewRoundFrame(999,"Squircle",{
+Name="Track",
+Size=UDim2.new(1,0,0,7),
+ImageTransparency=0.9,
+ClipsDescendants=true,
+ThemeTag={
+ImageColor3="ElementBackground",
+},
+},{
+as,
+}),
+aq.Desc and ai("TextLabel",{
+Name="Desc",
+Size=UDim2.new(1,0,0,0),
+AutomaticSize="Y",
+BackgroundTransparency=1,
+Text=tostring(aq.Desc),
+TextSize=12,
+TextTransparency=0.42,
+TextXAlignment="Left",
+TextWrapped=true,
+FontFace=Font.new(aa.Font,Enum.FontWeight.Medium),
+ThemeTag={
+TextColor3="Text",
+},
+})or nil,
+})
+
+ao.Rows[ap]={
+Frame=au,
+Fill=as,
+ValueLabel=at,
+}
+end
+end
+
+function ao.SetValue(ap,aq,ar)
+local as=ao.Meters[aq]
+local at=ao.Rows[aq]
+if not as or not at then
+return nil
+end
+
+as.Value=math.clamp(ak.ToFiniteNumber(ar)or as.Value,0,as.Max)
+local au=math.clamp(as.Value/as.Max,0,1)
+at.ValueLabel.Text=FormatValue(as)
+af.Play(at.Fill,"Fast",{
+Size=UDim2.new(au,0,1,0),
+},nil,nil,"Meter")
+return as.Value
+end
+
+function ao.SetMeters(ap,aq)
+ao.Meters=NormalizeMeters(aq)
+Render()
+return ao.Meters
+end
+
+Render()
+
+return ao.__type,ao
+end
+
+return al end function a.an()
+
+local aa=a.load'd'
+local af=a.load'e'
+local ai=aa.New
+
+local ak=a.load'af'
+
+local al={}
+
 function al.New(am,an)
 local ao={
 __type="Timeline",
@@ -17171,7 +17619,7 @@ Render()
 return ao.__type,ao
 end
 
-return al end function a.am()
+return al end function a.ao()
 
 local aa=a.load'd'
 local af=a.load'e'
@@ -17404,7 +17852,7 @@ Render()
 return ap.__type,ap
 end
 
-return al end function a.an()
+return al end function a.ap()
 
 local aa=a.load'd'
 local af=a.load'e'
@@ -17546,7 +17994,7 @@ end
 return ao.__type,ao
 end
 
-return al end function a.ao()
+return al end function a.aq()
 
 local aa=a.load'd'
 local af=a.load'e'
@@ -17917,7 +18365,7 @@ end
 return as.__type,as
 end
 
-return al end function a.ap()
+return al end function a.ar()
 
 local aa=a.load'd'
 local af=a.load'e'
@@ -18253,7 +18701,7 @@ end
 return ao.__type,ao
 end
 
-return al end function a.aq()
+return al end function a.as()
 
 local aa=a.load'd'
 local af=a.load'e'
@@ -18611,7 +19059,7 @@ end)
 return ap.__type,ap
 end
 
-return al end function a.ar()
+return al end function a.at()
 
 local aa=a.load'd'
 local af=aa.New
@@ -18990,7 +19438,7 @@ end)
 return an.__type,an
 end
 
-return ak end function a.as()
+return ak end function a.au()
 
 local aa=a.load'd'
 local af=aa.New
@@ -19007,7 +19455,7 @@ BackgroundTransparency=1,
 return"Space",{__type="Space",ElementFrame=am}
 end
 
-return ai end function a.at()
+return ai end function a.av()
 local aa=a.load'd'
 local af=aa.New
 
@@ -19076,7 +19524,7 @@ end
 return am.__type,am
 end
 
-return ai end function a.au()
+return ai end function a.aw()
 local aa=a.load'd'
 local af=aa.New
 
@@ -19162,7 +19610,7 @@ al.Tab
 return am.__type,am
 end
 
-return ai end function a.av()
+return ai end function a.ax()
 
 local aa=a.load'd'
 local af=aa.New
@@ -19283,7 +19731,7 @@ end
 return am.__type,am
 end
 
-return ai end function a.aw()
+return ai end function a.ay()
 
 local aa=a.load'd'
 local af=aa.New
@@ -19371,7 +19819,7 @@ al.Tab
 return am.__type,am
 end
 
-return ai end function a.ax()
+return ai end function a.az()
 
 local aa=(cloneref or clonereference or function(aa)
 return aa
@@ -19608,7 +20056,7 @@ ao.Main=at
 return ao.__type,ao
 end
 
-return al end function a.ay()
+return al end function a.aA()
 
 return{
 Elements={
@@ -19633,20 +20081,22 @@ StatusCard=a.load'ah',
 StatCard=a.load'ai',
 KeyValue=a.load'aj',
 ChipList=a.load'ak',
-Timeline=a.load'al',
-Accordion=a.load'am',
-EmptyState=a.load'an',
-DiscordCard=a.load'ao',
-TabBox=a.load'ap',
-Path2D=a.load'aq',
-Section=a.load'ar',
+ActionList=a.load'al',
+MeterGroup=a.load'am',
+Timeline=a.load'an',
+Accordion=a.load'ao',
+EmptyState=a.load'ap',
+DiscordCard=a.load'aq',
+TabBox=a.load'ar',
+Path2D=a.load'as',
+Section=a.load'at',
 Divider=a.load'S',
-Space=a.load'as',
-Image=a.load'at',
-Group=a.load'au',
-HStack=a.load'av',
-VStack=a.load'aw',
-Viewport=a.load'ax',
+Space=a.load'au',
+Image=a.load'av',
+Group=a.load'aw',
+HStack=a.load'ax',
+VStack=a.load'ay',
+Viewport=a.load'az',
 
 },
 Load=function(aa,af,ai,ak,al,am,an,ao,ap)
@@ -19784,7 +20234,7 @@ end
 end
 end
 end,
-}end function a.az()
+}end function a.aB()
 
 local aa=(cloneref or clonereference or function(aa)
 return aa
@@ -20327,7 +20777,7 @@ end
 
 
 
-local b=a.load'ay'
+local b=a.load'aA'
 
 b.Load(
 at,
@@ -20582,7 +21032,7 @@ aq.OnChangeFunc(as)
 end
 end
 
-return aq end function a.aA()
+return aq end function a.aC()
 
 local aa={}
 
@@ -20591,7 +21041,7 @@ local af=a.load'd'
 local ai=af.New
 local ak=af.Tween
 
-local al=a.load'az'
+local al=a.load'aB'
 
 function aa.New(am,an,ao,ap,aq)
 local ar={
@@ -20760,7 +21210,7 @@ return ar
 end
 
 
-return aa end function a.aB()
+return aa end function a.aD()
 return{
 Tab="table-of-contents",
 Paragraph="type",
@@ -20772,7 +21222,7 @@ Input="text-cursor-input",
 Dropdown="chevrons-up-down",
 Code="terminal",
 Colorpicker="palette",
-}end function a.aC()
+}end function a.aE()
 local aa=(cloneref or clonereference or function(aa)
 return aa
 end)
@@ -20796,7 +21246,7 @@ Radius=22,
 Width=400,
 MaxHeight=380,
 
-Icons=a.load'aB',
+Icons=a.load'aD',
 }
 
 local aq=ak("TextBox",{
@@ -21311,7 +21761,7 @@ end)
 return ap
 end
 
-return af end function a.aD()
+return af end function a.aF()
 
 
 
@@ -23334,8 +23784,8 @@ if ax.OpenButton and typeof(ax.OpenButton)=="table"then
 ax:EditOpenButton(ax.OpenButton)
 end
 
-local G=a.load'az'
-local H=a.load'aA'
+local G=a.load'aB'
+local H=a.load'aC'
 local J=G.Init(ax,aw.WindUI,aw.WindUI.TooltipGui)
 J:OnChange(function(L)
 ax.CurrentTab=L
@@ -23792,7 +24242,7 @@ end)
 
 
 if not ax.HideSearchBar then
-local S=a.load'aC'
+local S=a.load'aE'
 local T=false
 
 
@@ -24202,7 +24652,7 @@ aa:SetTheme"Dark"
 aa:SetLanguage(at.Language)
 
 function aa.CreateWindow(aA,aB)
-local b=a.load'aD'
+local b=a.load'aF'
 
 if not am:IsStudio()and writefile then
 if not isfolder"WindUI"then
