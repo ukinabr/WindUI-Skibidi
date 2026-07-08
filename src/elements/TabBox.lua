@@ -13,6 +13,7 @@ function Element:New(Config)
 		Desc = Config.Desc,
 		Tabs = {},
 		Selected = nil,
+		SelectedValue = nil,
 		UIElements = {},
 	}
 
@@ -32,13 +33,15 @@ function Element:New(Config)
 
 	TabBox.UIElements.Tabs = New("ScrollingFrame", {
 		Name = "Tabs",
-		Size = UDim2.new(1, 0, 0, 34),
+		Size = UDim2.new(1, 0, 0, Config.TabHeight or 36),
 		BackgroundTransparency = 1,
 		ScrollBarThickness = 0,
 		ScrollingDirection = "X",
+		ScrollingEnabled = true,
 		AutomaticCanvasSize = "X",
 		CanvasSize = UDim2.new(0, 0, 0, 0),
 		ElasticBehavior = "Never",
+		Active = true,
 		Parent = TabBox.TabBoxFrame.UIElements.Container,
 	}, {
 		New("UIListLayout", {
@@ -87,6 +90,32 @@ function Element:New(Config)
 		return Height
 	end
 
+	local function ScrollTabIntoView(Page)
+		task.defer(function()
+			if not Page or not Page.Button or not Page.Button.Parent then
+				return
+			end
+
+			local Tabs = TabBox.UIElements.Tabs
+			local ViewWidth = Tabs.AbsoluteSize.X
+			local ButtonLeft = Page.Button.AbsolutePosition.X - Tabs.AbsolutePosition.X + Tabs.CanvasPosition.X
+			local ButtonRight = ButtonLeft + Page.Button.AbsoluteSize.X
+			local ViewLeft = Tabs.CanvasPosition.X
+			local ViewRight = ViewLeft + ViewWidth
+			local Target = ViewLeft
+
+			if ButtonLeft < ViewLeft then
+				Target = ButtonLeft
+			elseif ButtonRight > ViewRight then
+				Target = ButtonRight - ViewWidth
+			end
+
+			if math.abs(Target - ViewLeft) > 1 then
+				Tabs.CanvasPosition = Vector2.new(math.max(Target, 0), 0)
+			end
+		end)
+	end
+
 	local function QueuePageHeightUpdate(Page, Index)
 		task.defer(function()
 			if TabBox.Selected == Index and Page and Page.UIElements.Container.Parent then
@@ -102,6 +131,7 @@ function Element:New(Config)
 		end
 
 		TabBox.Selected = Index
+		TabBox.SelectedValue = Page.Value
 		for PageIndex, OtherPage in next, TabBox.Tabs do
 			local IsSelected = PageIndex == Index
 			OtherPage.UIElements.Container.Visible = IsSelected
@@ -117,11 +147,29 @@ function Element:New(Config)
 		Motion.Play(Page.UIElements.Container, "Switch", { Position = UDim2.new(0, 0, 0, 0) }, nil, nil, "PageSlide")
 		QueuePageHeightUpdate(Page, Index)
 		UpdateTabVisuals()
+		ScrollTabIntoView(Page)
 		return Page
 	end
 
 	function TabBox:GetSelected()
 		return TabBox.Selected and TabBox.Tabs[TabBox.Selected] or nil
+	end
+
+	function TabBox:Get()
+		return TabBox.SelectedValue
+	end
+
+	function TabBox:SelectValue(Value)
+		for Index, Page in next, TabBox.Tabs do
+			if Page.Value == Value then
+				return TabBox:Select(Index)
+			end
+		end
+		return nil
+	end
+
+	function TabBox:Set(Value)
+		return TabBox:SelectValue(Value)
 	end
 
 	function TabBox:Tab(TabConfig)
@@ -142,14 +190,16 @@ function Element:New(Config)
 			Icon.Size = UDim2.new(0, 15, 0, 15)
 		end
 		local IconTarget = Utils.GetImageTarget(Icon)
+		local TextWidth = string.len(Page.Title) * (Config.Window.IsPC == false and 6 or 7)
+		local ButtonWidth = math.clamp(TextWidth + (Icon and 40 or 26), Config.MinTabWidth or 68, Config.MaxTabWidth or 154)
 
 		local Title = New("TextLabel", {
 			Name = "Title",
 			BackgroundTransparency = 1,
 			Text = Page.Title,
-			TextSize = 13,
+			TextSize = Config.Window.IsPC == false and 12 or 13,
 			TextTruncate = "AtEnd",
-			AutomaticSize = "X",
+			Size = UDim2.new(0, math.max(ButtonWidth - (Icon and 42 or 20), 24), 1, 0),
 			FontFace = Font.new(Creator.Font, Enum.FontWeight.SemiBold),
 			ThemeTag = {
 				TextColor3 = "Text",
@@ -159,8 +209,9 @@ function Element:New(Config)
 		local Button = Creator.NewRoundFrame(999, "Squircle", {
 			Name = "Tab",
 			LayoutOrder = Index,
-			Size = UDim2.new(0, math.max(72, string.len(Page.Title) * 7 + (Icon and 38 or 24)), 0, 30),
+			Size = UDim2.new(0, ButtonWidth, 0, Config.TabButtonHeight or 30),
 			ImageTransparency = 0.94,
+			ClipsDescendants = true,
 			ThemeTag = {
 				ImageColor3 = "TabBoxTabBackground",
 			},

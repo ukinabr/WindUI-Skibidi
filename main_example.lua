@@ -403,6 +403,7 @@ local SectionBox = MotionTab:Section({
 local BoxTabs = SectionBox:TabBox({
 	Title = "Animated Pages",
 	Desc = "Nested controls with page switch animation",
+	Flag = "motion-tabbox",
 })
 
 local Overview = BoxTabs:Tab({
@@ -426,6 +427,9 @@ local Controls = BoxTabs:Tab({
 local ControlRow = Controls:HStack()
 ControlRow:Stepper({
 	Title = "Amount",
+	Desc = "Hybrid step control",
+	Flag = "control-amount",
+	Width = 188,
 	Value = {
 		Min = 1,
 		Max = 10,

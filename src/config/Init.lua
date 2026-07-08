@@ -143,6 +143,19 @@ ConfigManager = {
                 end
             end
         },
+        TabBox = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Get and obj:Get() or obj.SelectedValue,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value)
+                end
+            end
+        },
         ChipList = {
             Save = function(obj)
                 return {
@@ -192,9 +205,15 @@ function ConfigManager:Init(WindowTable)
     
     local files = ConfigManager:AllConfigs()
     
-    for _, f in next, files do
-        if isfile and readfile and isfile(f .. ".json") then
-            ConfigManager.Configs[f] = readfile(f .. ".json")
+    for _, configName in next, files do
+        local configPath = ConfigManager.Path .. tostring(configName) .. ".json"
+        if isfile and readfile and isfile(configPath) then
+            local success, content = pcall(function()
+                return readfile(configPath)
+            end)
+            if success then
+                ConfigManager.Configs[configName] = content
+            end
         end
     end
     
@@ -273,8 +292,15 @@ function ConfigManager:CreateConfig(configFilename, autoload)
         end
         
         local jsonData = HttpService:JSONEncode(saveData)
-        if writefile then 
-            writefile(ConfigModule.Path, jsonData)
+        if writefile then
+            local success, err = pcall(function()
+                writefile(ConfigModule.Path, jsonData)
+            end)
+            if not success then
+                return false, "Failed to save config: " .. tostring(err)
+            end
+        else
+            return false, "writefile function is not available"
         end
         
         return saveData
@@ -312,10 +338,17 @@ function ConfigManager:CreateConfig(configFilename, autoload)
             end
         end
         
+        Window.PendingConfigData = loadData.__elements or {}
+
         for name, data in next, (loadData.__elements or {}) do
-            if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
+            if typeof(data) == "table" and ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
                 task.spawn(function()
-                    ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                    local success, err = pcall(function()
+                        ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                    end)
+                    if not success then
+                        warn("[ WindUI.ConfigManager ] Failed to load element '" .. tostring(name) .. "': " .. tostring(err))
+                    end
                 end)
             end
         end

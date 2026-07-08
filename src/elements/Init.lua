@@ -65,7 +65,7 @@ return {
 							local data = Window.PendingConfigData[config.Flag]
 
 							local ConfigManager = Window.ConfigManager
-							if ConfigManager.Parser[data.__type] then
+							if typeof(data) == "table" and ConfigManager.Parser[data.__type] then
 								task.defer(function()
 									local success, err = pcall(function()
 										ConfigManager.Parser[data.__type].Load(content, data)

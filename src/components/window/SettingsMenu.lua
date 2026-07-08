@@ -268,12 +268,25 @@ function SettingsMenu.New(Window, WindUI, Config)
 	Menu.UIElements.GlassLayer = Root.GlassLayer
 	Menu.UIElements.Outline = Root.Outline
 
+	local Pages
+	local ThemeList
+
 	local function UpdateRootPosition()
 		local Viewport = GetViewportSize()
 		local Margin = 12
+		local CurrentRootWidth = math.floor(math.min(RootWidth, math.max(280, Viewport.X - (Margin * 2))))
+		local CurrentRootHeight = math.floor(math.min(RootHeight, math.max(300, Viewport.Y - (Margin * 2))))
 		local Anchor = Vector2.new(1, 0)
 		local X = Viewport.X - Margin
 		local Y = Margin + Window.Topbar.Height
+
+		Root.Size = UDim2.fromOffset(CurrentRootWidth, CurrentRootHeight)
+		if Pages then
+			Pages.Size = UDim2.new(1, 0, 0, math.max(154, CurrentRootHeight - 142))
+		end
+		if ThemeList then
+			ThemeList.Size = UDim2.new(1, 0, 0, math.max(116, CurrentRootHeight - 238))
+		end
 
 		if Menu.Button and Menu.Button.AbsoluteSize.X > 0 then
 			local ButtonPosition = Menu.Button.AbsolutePosition
@@ -282,11 +295,11 @@ function SettingsMenu.New(Window, WindUI, Config)
 			Y = ButtonPosition.Y + ButtonSize.Y + 10
 		end
 
-		if X - RootWidth < Margin then
-			X = math.min(Viewport.X - Margin, Margin + RootWidth)
+		if X - CurrentRootWidth < Margin then
+			X = math.min(Viewport.X - Margin, Margin + CurrentRootWidth)
 		end
-		if Y + RootHeight > Viewport.Y - Margin then
-			Y = math.max(Margin, Viewport.Y - RootHeight - Margin)
+		if Y + CurrentRootHeight > Viewport.Y - Margin then
+			Y = math.max(Margin, Viewport.Y - CurrentRootHeight - Margin)
 		end
 
 		Root.AnchorPoint = Anchor
@@ -369,7 +382,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 		}),
 	})
 
-	local Pages = New("Frame", {
+	Pages = New("Frame", {
 		Name = "Pages",
 		LayoutOrder = 3,
 		Size = UDim2.new(1, 0, 0, PageHeight),
@@ -548,7 +561,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 		end
 
 		local Name = GetConfigName()
-		local Success, Result = pcall(function()
+		local Success, Result, Message = pcall(function()
 			local ConfigModule = Manager:Config(Name)
 			ConfigModule:Set("theme", WindUI:GetCurrentTheme())
 			return ConfigModule:Save()
@@ -558,7 +571,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 			RefreshConfigMeta()
 			Notify("Config saved", "Saved '" .. Name .. "'.", "check")
 		else
-			Notify("Config save failed", tostring(Result), "triangle-alert")
+			Notify("Config save failed", tostring(Message or Result), "triangle-alert")
 		end
 	end)
 	SaveButton.Size = UDim2.new(0.5, -4, 1, 0)
@@ -571,7 +584,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 		end
 
 		local Name = GetConfigName()
-		local Success, Result = pcall(function()
+		local Success, Result, Message = pcall(function()
 			local ConfigModule = Manager:Config(Name)
 			local Data = ConfigModule:Load()
 			if Data and Data.theme then
@@ -584,7 +597,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 			ThemeMeta.Text = "Theme: " .. tostring(WindUI:GetCurrentTheme())
 			Notify("Config loaded", "Loaded '" .. Name .. "'.", "refresh-cw")
 		else
-			Notify("Config load failed", tostring(Result), "triangle-alert")
+			Notify("Config load failed", tostring(Message or Result), "triangle-alert")
 		end
 	end)
 	LoadButton.Size = UDim2.new(0.5, -4, 1, 0)
@@ -593,7 +606,7 @@ function SettingsMenu.New(Window, WindUI, Config)
 	CreateText(ThemeCard, "Theme Picker", 13, Enum.FontWeight.Bold, 0.05)
 	CreateText(ThemeCard, "Tap a theme to apply it instantly.", 12, Enum.FontWeight.Medium, 0.45)
 
-	local ThemeList = New("ScrollingFrame", {
+	ThemeList = New("ScrollingFrame", {
 		Name = "ThemeList",
 		Size = UDim2.new(1, 0, 0, SettingsConfig.ThemeListHeight or 214),
 		BackgroundTransparency = 1,
