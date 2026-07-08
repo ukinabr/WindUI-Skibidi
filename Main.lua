@@ -1768,6 +1768,59 @@ Switch=0.16,
 Reveal=0.18,
 }
 
+d.PresetDurations={
+Liquid={
+Fast=0.1,
+Hover=0.14,
+Press=0.1,
+Select=0.2,
+Focus=0.18,
+DropdownOpen=0.2,
+DropdownClose=0.16,
+WindowOpen=0.32,
+WindowClose=0.22,
+Resize=0.28,
+Highlight=0.34,
+Background=0.28,
+Expand=0.24,
+Switch=0.22,
+Reveal=0.22,
+},
+Snappy={
+Fast=0.06,
+Hover=0.08,
+Press=0.08,
+Select=0.11,
+Focus=0.1,
+DropdownOpen=0.12,
+DropdownClose=0.1,
+WindowOpen=0.2,
+WindowClose=0.16,
+Resize=0.16,
+Highlight=0.22,
+Background=0.16,
+Expand=0.16,
+Switch=0.12,
+Reveal=0.14,
+},
+}
+
+d.PresetEasing={
+Liquid={
+Style=Enum.EasingStyle.Quint,
+Direction=Enum.EasingDirection.Out,
+},
+Snappy={
+Style=Enum.EasingStyle.Quart,
+Direction=Enum.EasingDirection.Out,
+},
+}
+
+d.PresetPressAmount={
+Liquid=0.965,
+Snappy=0.975,
+}
+
 local e=setmetatable({},{__mode="k"})
 
 local f={}
@@ -1813,7 +1866,8 @@ end
 
 function d.GetDuration(h)
 if typeof(h)=="string"then
-return d.Durations[h]or d.Durations.Fast
+local i=d.PresetDurations[d.Preset]
+return(i and i[h])or d.Durations[h]or d.Durations.Fast
 end
 
 return math.max(tonumber(h)or d.Durations.Fast,0)
@@ -1856,7 +1910,7 @@ end
 function d.SetPreset(h,i)
 i=tostring(i or"Subtle")
 
-if i~="Subtle"and i~="None"then
+if i~="Subtle"and i~="Liquid"and i~="Snappy"and i~="None"then
 i="Subtle"
 end
 
@@ -1935,9 +1989,14 @@ ApplyProperties(h,x or l)
 return
 end
 
+local C=d.PresetEasing[d.Preset]
 A=b:Create(
 h,
-TweenInfo.new(u,m or Enum.EasingStyle.Quint,p or Enum.EasingDirection.Out),
+TweenInfo.new(
+u,
+m or(C and C.Style)or Enum.EasingStyle.Quint,
+p or(C and C.Direction)or Enum.EasingDirection.Out
+),
 x
 )
 
@@ -1945,9 +2004,9 @@ e[h]=e[h]or{}
 e[h][r]=A
 
 A.Completed:Connect(function()
-local C=e[h]
-if C and C[r]==A then
-C[r]=nil
+local F=e[h]
+if F and F[r]==A then
+F[r]=nil
 end
 end)
 
@@ -2005,7 +2064,7 @@ end
 d.Play(
 m,
 "Press",
-{Scale=i and(l or 0.97)or 1},
+{Scale=i and(l or d.PresetPressAmount[d.Preset]or 0.97)or 1},
 Enum.EasingStyle.Quint,
 Enum.EasingDirection.Out,
 "Press"
@@ -18973,6 +19032,16 @@ Name="Outline",
 
 
 }),
+al.NewRoundFrame(999,"Squircle",{
+Name="ActiveRail",
+Size=UDim2.new(0,3,0,0),
+AnchorPoint=Vector2.new(0,0.5),
+Position=UDim2.new(0,2,0.5,0),
+ImageTransparency=1,
+ThemeTag={
+ImageColor3="Primary",
+},
+}),
 al.NewRoundFrame(at.UICorner,"Squircle",{
 Size=UDim2.new(1,0,0,0),
 AutomaticSize="Y",
@@ -19182,9 +19251,10 @@ HorizontalAlignment="Center",
 
 
 
-at.UIElements.ContainerFrameCanvas=an("Frame",{
+at.UIElements.ContainerFrameCanvas=an("CanvasGroup",{
 Size=UDim2.new(1,0,1,0),
 BackgroundTransparency=1,
+GroupTransparency=1,
 Visible=false,
 Parent=Window.UIElements.MainBar,
 ZIndex=5,
@@ -19256,6 +19326,10 @@ aq:SelectTab(au)
 end
 end)
 
+am.AttachPress(at.UIElements.Main,al,{
+Amount=0.985,
+})
+
 if Window.ScrollBarEnabled then
 ap(
 at.UIElements.ContainerFrame,
@@ -19296,11 +19370,18 @@ end)
 end
 
 al.AddSignal(at.UIElements.Main.MouseEnter,function()
-if not at.Locked then
+if not at.Locked and not at.Selected then
 al.SetThemeTag(at.UIElements.Main.Frame,{
 ImageTransparency="TabBackgroundHoverTransparency",
 ImageColor3="TabBackgroundHover",
 },0.1)
+end
+end)
+al.AddSignal(at.UIElements.Main.MouseLeave,function()
+if not at.Locked and not at.Selected then
+am.Play(at.UIElements.Main.Frame,"Hover",{
+ImageTransparency=1,
+},Enum.EasingStyle.Quint,Enum.EasingDirection.Out,"TabHover")
 end
 end)
 al.AddSignal(at.UIElements.Main.InputEnded,function()
@@ -19320,10 +19401,10 @@ ay=nil
 end
 end
 
-if not at.Locked then
-al.SetThemeTag(at.UIElements.Main.Frame,{
-ImageTransparency="TabBorderTransparency",
-},0.1)
+if not at.Locked and not at.Selected then
+am.Play(at.UIElements.Main.Frame,"Hover",{
+ImageTransparency=1,
+},Enum.EasingStyle.Quint,Enum.EasingDirection.Out,"TabHover")
 end
 end)
 
@@ -19511,63 +19592,96 @@ av.ImageTransparency=as and 0.58 or 0.78
 end
 end
 
+local function ApplyTabMotionVisual(ar,as)
+if not ar or not ar.UIElements or not ar.UIElements.Main then
+return
+end
+
+local at=ar.UIElements.Main.ActiveRail
+if at then
+if ar.Golden then
+at.ImageColor3=as and Color3.fromRGB(255,232,132)or Color3.fromRGB(255,214,92)
+end
+
+am.Play(at,"Switch",{
+Size=as and UDim2.new(0,3,1,-12)or UDim2.new(0,3,0,0),
+ImageTransparency=as and 0.08 or 1,
+},Enum.EasingStyle.Quint,Enum.EasingDirection.Out,"TabRail")
+end
+
+if not as and ar.UIElements.Main.Frame then
+am.Play(ar.UIElements.Main.Frame,"Hover",{
+ImageTransparency=1,
+},Enum.EasingStyle.Quint,Enum.EasingDirection.Out,"TabHover")
+end
+end
+
 function aq.SelectTab(ar,as)
-if not aq.Tabs[as].Locked then
+local at=aq.Tabs[as]
+if at and not at.Locked and aq.SelectedTab~=as then
 aq.SelectedTab=as
 
-for at,au in next,aq.Tabs do
-if not au.Locked then
-al.SetThemeTag(au.UIElements.Main,{
+for au,av in next,aq.Tabs do
+if not av.Locked then
+al.SetThemeTag(av.UIElements.Main,{
 ImageTransparency="TabBorderTransparency",
 },0.15)
-if au.Border then
-al.SetThemeTag(au.UIElements.Main.Outline,{
+if av.Border then
+al.SetThemeTag(av.UIElements.Main.Outline,{
 ImageTransparency="TabBorderTransparency",
 },0.15)
 end
-al.SetThemeTag(au.UIElements.Main.Frame.TextLabel,{
+al.SetThemeTag(av.UIElements.Main.Frame.TextLabel,{
 TextTransparency="TabTextTransparency",
 },0.15)
-local av=au.UIElements.Icon and GetImageTarget(au.UIElements.Icon)
-if av and not au.IconColor then
-al.SetThemeTag(av,{
+local aw=av.UIElements.Icon and GetImageTarget(av.UIElements.Icon)
+if aw and not av.IconColor then
+al.SetThemeTag(aw,{
 ImageTransparency="TabIconTransparency",
 },0.15)
 end
-au.Selected=false
-ApplyGoldenTabVisual(au,false)
+av.Selected=false
+ApplyGoldenTabVisual(av,false)
+ApplyTabMotionVisual(av,false)
 end
 end
-al.SetThemeTag(aq.Tabs[as].UIElements.Main,{
+al.SetThemeTag(at.UIElements.Main,{
 ImageColor3="TabBackgroundActive",
 ImageTransparency="TabBackgroundActiveTransparency",
 },0.15)
-if aq.Tabs[as].Border then
-al.SetThemeTag(aq.Tabs[as].UIElements.Main.Outline,{
+if at.Border then
+al.SetThemeTag(at.UIElements.Main.Outline,{
 ImageTransparency="TabBorderTransparencyActive",
 },0.15)
 end
-al.SetThemeTag(aq.Tabs[as].UIElements.Main.Frame.TextLabel,{
+al.SetThemeTag(at.UIElements.Main.Frame.TextLabel,{
 TextTransparency="TabTextTransparencyActive",
 },0.15)
-local at=aq.Tabs[as].UIElements.Icon
-and GetImageTarget(aq.Tabs[as].UIElements.Icon)
-if at and not aq.Tabs[as].IconColor then
-al.SetThemeTag(at,{
+local au=at.UIElements.Icon and GetImageTarget(at.UIElements.Icon)
+if au and not at.IconColor then
+al.SetThemeTag(au,{
 ImageTransparency="TabIconTransparencyActive",
 },0.15)
 end
-aq.Tabs[as].Selected=true
-ApplyGoldenTabVisual(aq.Tabs[as],true)
+at.Selected=true
+ApplyGoldenTabVisual(at,true)
+ApplyTabMotionVisual(at,true)
 
 task.spawn(function()
-for au,av in next,aq.Containers do
-av.AnchorPoint=Vector2.new(0,0.05)
-av.Visible=false
+local av=aq.Containers[as]
+for aw,ax in next,aq.Containers do
+if ax~=av then
+ax.AnchorPoint=Vector2.new(0,0.035)
+ax.GroupTransparency=1
+ax.Visible=false
 end
-aq.Containers[as].Visible=true
-am.Play(aq.Containers[as],"Select",{
+end
+av.AnchorPoint=Vector2.new(0,0.035)
+av.GroupTransparency=1
+av.Visible=true
+am.Play(av,"Switch",{
 AnchorPoint=Vector2.new(0,0),
+GroupTransparency=0,
 },Enum.EasingStyle.Quart,Enum.EasingDirection.Out,"Select")
 end)
 

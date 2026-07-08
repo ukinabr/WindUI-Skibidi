@@ -135,7 +135,17 @@ function TabModule.New(Config, UIScale)
 			--         NumberSequenceKeypoint.new(0.5, 1),
 			--         NumberSequenceKeypoint.new(1.0, 0.1),
 			--     })
-			-- }),
+				-- }),
+		}),
+		Creator.NewRoundFrame(999, "Squircle", {
+			Name = "ActiveRail",
+			Size = UDim2.new(0, 3, 0, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 2, 0.5, 0),
+			ImageTransparency = 1,
+			ThemeTag = {
+				ImageColor3 = "Primary",
+			},
 		}),
 		Creator.NewRoundFrame(Tab.UICorner, "Squircle", {
 			Size = UDim2.new(1, 0, 0, 0),
@@ -346,9 +356,10 @@ function TabModule.New(Config, UIScale)
 	--     Tab.UIElements.ContainerFrame.CanvasSize = UDim2.new(0,0,0,Tab.UIElements.ContainerFrame.UIListLayout.AbsoluteContentSize.Y+Window.UIPadding*2)
 	-- end)
 
-	Tab.UIElements.ContainerFrameCanvas = New("Frame", {
+	Tab.UIElements.ContainerFrameCanvas = New("CanvasGroup", {
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
+		GroupTransparency = 1,
 		Visible = false,
 		Parent = Window.UIElements.MainBar,
 		ZIndex = 5,
@@ -420,6 +431,10 @@ function TabModule.New(Config, UIScale)
 		end
 	end)
 
+	Motion.AttachPress(Tab.UIElements.Main, Creator, {
+		Amount = 0.985,
+	})
+
 	if Window.ScrollBarEnabled then
 		CreateScrollSlider(
 			Tab.UIElements.ContainerFrame,
@@ -460,11 +475,18 @@ function TabModule.New(Config, UIScale)
 	end
 
 	Creator.AddSignal(Tab.UIElements.Main.MouseEnter, function()
-		if not Tab.Locked then
+		if not Tab.Locked and not Tab.Selected then
 			Creator.SetThemeTag(Tab.UIElements.Main.Frame, {
 				ImageTransparency = "TabBackgroundHoverTransparency",
 				ImageColor3 = "TabBackgroundHover",
 			}, 0.1)
+		end
+	end)
+	Creator.AddSignal(Tab.UIElements.Main.MouseLeave, function()
+		if not Tab.Locked and not Tab.Selected then
+			Motion.Play(Tab.UIElements.Main.Frame, "Hover", {
+				ImageTransparency = 1,
+			}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "TabHover")
 		end
 	end)
 	Creator.AddSignal(Tab.UIElements.Main.InputEnded, function()
@@ -484,10 +506,10 @@ function TabModule.New(Config, UIScale)
 			end
 		end
 
-		if not Tab.Locked then
-			Creator.SetThemeTag(Tab.UIElements.Main.Frame, {
-				ImageTransparency = "TabBorderTransparency",
-			}, 0.1)
+		if not Tab.Locked and not Tab.Selected then
+			Motion.Play(Tab.UIElements.Main.Frame, "Hover", {
+				ImageTransparency = 1,
+			}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "TabHover")
 		end
 	end)
 
@@ -675,8 +697,33 @@ local function ApplyGoldenTabVisual(TabObject, Active)
 	end
 end
 
+local function ApplyTabMotionVisual(TabObject, Active)
+	if not TabObject or not TabObject.UIElements or not TabObject.UIElements.Main then
+		return
+	end
+
+	local Rail = TabObject.UIElements.Main.ActiveRail
+	if Rail then
+		if TabObject.Golden then
+			Rail.ImageColor3 = Active and Color3.fromRGB(255, 232, 132) or Color3.fromRGB(255, 214, 92)
+		end
+
+		Motion.Play(Rail, "Switch", {
+			Size = Active and UDim2.new(0, 3, 1, -12) or UDim2.new(0, 3, 0, 0),
+			ImageTransparency = Active and 0.08 or 1,
+		}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "TabRail")
+	end
+
+	if not Active and TabObject.UIElements.Main.Frame then
+		Motion.Play(TabObject.UIElements.Main.Frame, "Hover", {
+			ImageTransparency = 1,
+		}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "TabHover")
+	end
+end
+
 function TabModule:SelectTab(TabIndex)
-	if not TabModule.Tabs[TabIndex].Locked then
+	local SelectedTab = TabModule.Tabs[TabIndex]
+	if SelectedTab and not SelectedTab.Locked and TabModule.SelectedTab ~= TabIndex then
 		TabModule.SelectedTab = TabIndex
 
 		for _, TabObject in next, TabModule.Tabs do
@@ -700,38 +747,46 @@ function TabModule:SelectTab(TabIndex)
 				end
 				TabObject.Selected = false
 				ApplyGoldenTabVisual(TabObject, false)
+				ApplyTabMotionVisual(TabObject, false)
 			end
 		end
-		Creator.SetThemeTag(TabModule.Tabs[TabIndex].UIElements.Main, {
+		Creator.SetThemeTag(SelectedTab.UIElements.Main, {
 			ImageColor3 = "TabBackgroundActive",
 			ImageTransparency = "TabBackgroundActiveTransparency",
 		}, 0.15)
-		if TabModule.Tabs[TabIndex].Border then
-			Creator.SetThemeTag(TabModule.Tabs[TabIndex].UIElements.Main.Outline, {
+		if SelectedTab.Border then
+			Creator.SetThemeTag(SelectedTab.UIElements.Main.Outline, {
 				ImageTransparency = "TabBorderTransparencyActive",
 			}, 0.15)
 		end
-		Creator.SetThemeTag(TabModule.Tabs[TabIndex].UIElements.Main.Frame.TextLabel, {
+		Creator.SetThemeTag(SelectedTab.UIElements.Main.Frame.TextLabel, {
 			TextTransparency = "TabTextTransparencyActive",
 		}, 0.15)
-		local SelectedIconTarget = TabModule.Tabs[TabIndex].UIElements.Icon
-			and GetImageTarget(TabModule.Tabs[TabIndex].UIElements.Icon)
-		if SelectedIconTarget and not TabModule.Tabs[TabIndex].IconColor then
+		local SelectedIconTarget = SelectedTab.UIElements.Icon and GetImageTarget(SelectedTab.UIElements.Icon)
+		if SelectedIconTarget and not SelectedTab.IconColor then
 			Creator.SetThemeTag(SelectedIconTarget, {
 				ImageTransparency = "TabIconTransparencyActive",
 			}, 0.15)
 		end
-		TabModule.Tabs[TabIndex].Selected = true
-		ApplyGoldenTabVisual(TabModule.Tabs[TabIndex], true)
+		SelectedTab.Selected = true
+		ApplyGoldenTabVisual(SelectedTab, true)
+		ApplyTabMotionVisual(SelectedTab, true)
 
 		task.spawn(function()
+			local SelectedContainer = TabModule.Containers[TabIndex]
 			for _, ContainerObject in next, TabModule.Containers do
-				ContainerObject.AnchorPoint = Vector2.new(0, 0.05)
-				ContainerObject.Visible = false
+				if ContainerObject ~= SelectedContainer then
+					ContainerObject.AnchorPoint = Vector2.new(0, 0.035)
+					ContainerObject.GroupTransparency = 1
+					ContainerObject.Visible = false
+				end
 			end
-			TabModule.Containers[TabIndex].Visible = true
-			Motion.Play(TabModule.Containers[TabIndex], "Select", {
+			SelectedContainer.AnchorPoint = Vector2.new(0, 0.035)
+			SelectedContainer.GroupTransparency = 1
+			SelectedContainer.Visible = true
+			Motion.Play(SelectedContainer, "Switch", {
 				AnchorPoint = Vector2.new(0, 0),
+				GroupTransparency = 0,
 			}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, "Select")
 		end)
 

@@ -26,6 +26,59 @@ Motion.Durations = {
 	Reveal = 0.18,
 }
 
+Motion.PresetDurations = {
+	Liquid = {
+		Fast = 0.1,
+		Hover = 0.14,
+		Press = 0.1,
+		Select = 0.2,
+		Focus = 0.18,
+		DropdownOpen = 0.2,
+		DropdownClose = 0.16,
+		WindowOpen = 0.32,
+		WindowClose = 0.22,
+		Resize = 0.28,
+		Highlight = 0.34,
+		Background = 0.28,
+		Expand = 0.24,
+		Switch = 0.22,
+		Reveal = 0.22,
+	},
+	Snappy = {
+		Fast = 0.06,
+		Hover = 0.08,
+		Press = 0.08,
+		Select = 0.11,
+		Focus = 0.1,
+		DropdownOpen = 0.12,
+		DropdownClose = 0.1,
+		WindowOpen = 0.2,
+		WindowClose = 0.16,
+		Resize = 0.16,
+		Highlight = 0.22,
+		Background = 0.16,
+		Expand = 0.16,
+		Switch = 0.12,
+		Reveal = 0.14,
+	},
+}
+
+Motion.PresetEasing = {
+	Liquid = {
+		Style = Enum.EasingStyle.Quint,
+		Direction = Enum.EasingDirection.Out,
+	},
+	Snappy = {
+		Style = Enum.EasingStyle.Quart,
+		Direction = Enum.EasingDirection.Out,
+	},
+}
+
+Motion.PresetPressAmount = {
+	Liquid = 0.965,
+	Snappy = 0.975,
+}
+
 local ActiveTweens = setmetatable({}, { __mode = "k" })
 
 local NoopTween = {}
@@ -71,7 +124,8 @@ end
 
 function Motion.GetDuration(Duration)
 	if typeof(Duration) == "string" then
-		return Motion.Durations[Duration] or Motion.Durations.Fast
+		local PresetDurations = Motion.PresetDurations[Motion.Preset]
+		return (PresetDurations and PresetDurations[Duration]) or Motion.Durations[Duration] or Motion.Durations.Fast
 	end
 
 	return math.max(tonumber(Duration) or Motion.Durations.Fast, 0)
@@ -114,7 +168,7 @@ end
 function Motion:SetPreset(Preset)
 	Preset = tostring(Preset or "Subtle")
 
-	if Preset ~= "Subtle" and Preset ~= "None" then
+	if Preset ~= "Subtle" and Preset ~= "Liquid" and Preset ~= "Snappy" and Preset ~= "None" then
 		Preset = "Subtle"
 	end
 
@@ -193,9 +247,14 @@ function Motion.Tween(Object, Duration, Properties, EasingStyle, EasingDirection
 			return
 		end
 
+		local PresetEasing = Motion.PresetEasing[Motion.Preset]
 		Tween = TweenService:Create(
 			Object,
-			TweenInfo.new(Time, EasingStyle or Enum.EasingStyle.Quint, EasingDirection or Enum.EasingDirection.Out),
+			TweenInfo.new(
+				Time,
+				EasingStyle or (PresetEasing and PresetEasing.Style) or Enum.EasingStyle.Quint,
+				EasingDirection or (PresetEasing and PresetEasing.Direction) or Enum.EasingDirection.Out
+			),
 			TweenProperties
 		)
 
@@ -263,7 +322,7 @@ function Motion.Press(Object, IsPressed, Amount)
 	Motion.Play(
 		Scale,
 		"Press",
-		{ Scale = IsPressed and (Amount or 0.97) or 1 },
+		{ Scale = IsPressed and (Amount or Motion.PresetPressAmount[Motion.Preset] or 0.97) or 1 },
 		Enum.EasingStyle.Quint,
 		Enum.EasingDirection.Out,
 		"Press"

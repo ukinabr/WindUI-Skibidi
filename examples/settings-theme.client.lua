@@ -1,6 +1,6 @@
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/main/dist/main.lua"))()
 
-WindUI:SetMotionPreset("Subtle")
+WindUI:SetMotionPreset("Liquid")
 
 local Window = WindUI:CreateWindow({
 	Title = "WindUI Settings Example",

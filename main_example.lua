@@ -1,6 +1,6 @@
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/main/dist/main.lua"))()
 
-WindUI:SetMotionPreset("Subtle")
+WindUI:SetMotionPreset("Liquid")
 
 local Window = WindUI:CreateWindow({
 	Title = ".ftgs hub | WindUI Full Example",
@@ -34,7 +34,7 @@ local Window = WindUI:CreateWindow({
 		ScrimTransparency = 0.76,
 	},
 	Motion = {
-		Preset = "Subtle",
+		Preset = "Liquid",
 		Reduced = false,
 	},
 	Topbar = {
