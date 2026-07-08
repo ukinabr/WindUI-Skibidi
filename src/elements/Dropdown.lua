@@ -39,6 +39,8 @@ function Element:New(Config)
 		FullWidth = Config.FullWidth or Config.Full or Config.Mode == "Full" or Config.MenuMode == "Full",
 		Direction = Config.Direction or Config.OpenDirection or "Auto",
 		Side = Config.Side or Config.Align or Config.Alignment or "Right",
+		MobileDirection = Config.MobileDirection or Config.MobileOpenDirection,
+		MobileSide = Config.MobileSide or Config.MobileAlign,
 		Value = Config.Value,
 		AllowNone = Config.AllowNone,
 		SearchBarEnabled = Config.SearchBarEnabled or false,

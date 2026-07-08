@@ -6,7 +6,8 @@ end)
 
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local Mouse = cloneref(game:GetService("Players")).LocalPlayer:GetMouse()
-local Camera = cloneref(game:GetService("Workspace")).CurrentCamera
+local Workspace = cloneref(game:GetService("Workspace"))
+local Camera = Workspace.CurrentCamera
 
 local CurrentCamera = workspace.CurrentCamera
 
@@ -106,7 +107,54 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		if Config.WindUI.DropdownGui and Config.WindUI.DropdownGui.AbsoluteSize.X > 0 then
 			return Config.WindUI.DropdownGui.AbsoluteSize
 		end
-		return Camera.ViewportSize
+		local CurrentCamera = Workspace.CurrentCamera or Camera
+		return CurrentCamera and CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+	end
+
+	local function GetInputPosition(Input)
+		if Input and typeof(Input.Position) == "Vector3" then
+			return Vector2.new(Input.Position.X, Input.Position.Y)
+		end
+		return Vector2.new(Mouse.X, Mouse.Y)
+	end
+
+	local function ContainsPoint(Object, Point)
+		if typeof(Object) ~= "Instance" or not Object.Visible then
+			return false
+		end
+
+		local AbsolutePosition = Object.AbsolutePosition
+		local AbsoluteSize = Object.AbsoluteSize
+
+		return Point.X >= AbsolutePosition.X
+			and Point.X <= AbsolutePosition.X + AbsoluteSize.X
+			and Point.Y >= AbsolutePosition.Y
+			and Point.Y <= AbsolutePosition.Y + AbsoluteSize.Y
+	end
+
+	local function NormalizeDirection(Value, Default)
+		local Direction = tostring(Value or Default or "Auto")
+		Direction = Direction:sub(1, 1):upper() .. Direction:sub(2):lower()
+		if Direction ~= "Auto" and Direction ~= "Down" and Direction ~= "Up" and Direction ~= "Left" and Direction ~= "Right" then
+			return Default or "Auto"
+		end
+		return Direction
+	end
+
+	local function NormalizeSide(Value, Default)
+		local Side = tostring(Value or Default or "Right")
+		Side = Side:sub(1, 1):upper() .. Side:sub(2):lower()
+		if Side ~= "Left" and Side ~= "Center" and Side ~= "Right" then
+			return Default or "Right"
+		end
+		return Side
+	end
+
+	local function IsMobileViewport()
+		local Viewport = GetViewportSize()
+		return Config.Window.IsPC == false
+			or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
+			or Viewport.X <= 640
 	end
 
 	local function GetCanvasWidth()
@@ -150,13 +198,31 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		local menu = Dropdown.UIElements.MenuCanvas
 		local viewport = GetViewportSize()
 		local padding = Element.MenuPadding * 2
-		local direction = tostring(Dropdown.Direction or "Auto")
-		local side = tostring(Dropdown.Side or "Right")
+		local mobile = IsMobileViewport()
+		local direction = NormalizeDirection(mobile and (Dropdown.MobileDirection or Dropdown.Direction) or Dropdown.Direction, "Auto")
+		local side = NormalizeSide(mobile and (Dropdown.MobileSide or "Center") or Dropdown.Side, mobile and "Center" or "Right")
+		local buttonPosition = button.AbsolutePosition
+		local buttonSize = button.AbsoluteSize
+		local menuSize = menu.AbsoluteSize
+
+		if menuSize.X <= 0 or menuSize.Y <= 0 then
+			menuSize = Vector2.new(menu.Size.X.Offset, menu.Size.Y.Offset)
+		end
+
+		if mobile and not Dropdown.MobileDirection and (direction == "Left" or direction == "Right") then
+			direction = "Auto"
+		end
+
+		if direction == "Left" and buttonPosition.X - padding < menuSize.X then
+			direction = "Auto"
+		elseif direction == "Right" and viewport.X - (buttonPosition.X + buttonSize.X) - padding < menuSize.X then
+			direction = "Auto"
+		end
 
 		if direction == "Auto" then
-			local below = viewport.Y - (button.AbsolutePosition.Y + button.AbsoluteSize.Y) - padding
-			local above = button.AbsolutePosition.Y - padding
-			if below >= menu.AbsoluteSize.Y or below >= above then
+			local below = viewport.Y - (buttonPosition.Y + buttonSize.Y) - padding
+			local above = buttonPosition.Y - padding
+			if below >= menuSize.Y or below >= above then
 				direction = "Down"
 			else
 				direction = "Up"
@@ -172,52 +238,52 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		local anchor = Vector2.new(1, 0)
 
 		if direction == "Left" then
-			x = button.AbsolutePosition.X - padding
-			y = button.AbsolutePosition.Y
+			x = buttonPosition.X - padding
+			y = buttonPosition.Y
 			anchor = Vector2.new(1, 0)
 		elseif direction == "Right" then
-			x = button.AbsolutePosition.X + button.AbsoluteSize.X + padding
-			y = button.AbsolutePosition.Y
+			x = buttonPosition.X + buttonSize.X + padding
+			y = buttonPosition.Y
 			anchor = Vector2.new(0, 0)
 		elseif direction == "Up" then
-			y = button.AbsolutePosition.Y - padding
+			y = buttonPosition.Y - padding
 			anchor = Vector2.new(side == "Left" and 0 or side == "Center" and 0.5 or 1, 1)
 			if side == "Left" then
-				x = button.AbsolutePosition.X
+				x = buttonPosition.X
 			elseif side == "Center" then
-				x = button.AbsolutePosition.X + (button.AbsoluteSize.X / 2)
+				x = buttonPosition.X + (buttonSize.X / 2)
 			else
-				x = button.AbsolutePosition.X + button.AbsoluteSize.X
+				x = buttonPosition.X + buttonSize.X
 			end
 		else
-			y = button.AbsolutePosition.Y + button.AbsoluteSize.Y + padding
+			y = buttonPosition.Y + buttonSize.Y + padding
 			anchor = Vector2.new(side == "Left" and 0 or side == "Center" and 0.5 or 1, 0)
 			if side == "Left" then
-				x = button.AbsolutePosition.X
+				x = buttonPosition.X
 			elseif side == "Center" then
-				x = button.AbsolutePosition.X + (button.AbsoluteSize.X / 2)
+				x = buttonPosition.X + (buttonSize.X / 2)
 			else
-				x = button.AbsolutePosition.X + button.AbsoluteSize.X
+				x = buttonPosition.X + buttonSize.X
 			end
 		end
 
-		local left = x - (anchor.X * menu.AbsoluteSize.X)
-		local top = y - (anchor.Y * menu.AbsoluteSize.Y)
+		local left = x - (anchor.X * menuSize.X)
+		local top = y - (anchor.Y * menuSize.Y)
 
 		if left < padding then
 			x += padding - left
-		elseif left + menu.AbsoluteSize.X > viewport.X - padding then
-			x -= (left + menu.AbsoluteSize.X) - (viewport.X - padding)
+		elseif left + menuSize.X > viewport.X - padding then
+			x -= (left + menuSize.X) - (viewport.X - padding)
 		end
 
 		if top < padding then
 			y += padding - top
-		elseif top + menu.AbsoluteSize.Y > viewport.Y - padding then
-			y -= (top + menu.AbsoluteSize.Y) - (viewport.Y - padding)
+		elseif top + menuSize.Y > viewport.Y - padding then
+			y -= (top + menuSize.Y) - (viewport.Y - padding)
 		end
 
 		menu.AnchorPoint = anchor
-		menu.Position = UDim2.fromOffset(x, y)
+		menu.Position = UDim2.fromOffset(math.floor(x + 0.5), math.floor(y + 0.5))
 		Dropdown.UIElements.Menu.AnchorPoint = direction == "Left" and Vector2.new(1, 0)
 			or direction == "Right" and Vector2.new(0, 0)
 			or direction == "Up" and Vector2.new(1, 1)
@@ -737,7 +803,11 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 			or Dropdown.DropdownFrame.UIElements.Main.MouseButton1Click
 		),
 		function()
-			DropdownModule:Open()
+			if Dropdown.Opened or Dropdown.UIElements.MenuCanvas.Visible then
+				DropdownModule:Close()
+			else
+				DropdownModule:Open()
+			end
 		end
 	)
 
@@ -747,23 +817,17 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 			or Input.UserInputType == Enum.UserInputType.Touch
 		then
 			local menuCanvas = Dropdown.UIElements.MenuCanvas
-			local AbsPos, AbsSize = menuCanvas.AbsolutePosition, menuCanvas.AbsoluteSize
-
 			local DropdownButton = Dropdown.UIElements.Dropdown or Dropdown.DropdownFrame.UIElements.Main
-			local ButtonAbsPos = DropdownButton.AbsolutePosition
-			local ButtonAbsSize = DropdownButton.AbsoluteSize
+			local InputPosition = GetInputPosition(Input)
+			local isClickOnDropdown = ContainsPoint(DropdownButton, InputPosition)
+			local isClickOnMenu = ContainsPoint(menuCanvas, InputPosition)
 
-			local isClickOnDropdown = Mouse.X >= ButtonAbsPos.X
-				and Mouse.X <= ButtonAbsPos.X + ButtonAbsSize.X
-				and Mouse.Y >= ButtonAbsPos.Y
-				and Mouse.Y <= ButtonAbsPos.Y + ButtonAbsSize.Y
-
-			local isClickOnMenu = Mouse.X >= AbsPos.X
-				and Mouse.X <= AbsPos.X + AbsSize.X
-				and Mouse.Y >= AbsPos.Y
-				and Mouse.Y <= AbsPos.Y + AbsSize.Y
-
-			if Config.Window.CanDropdown and Dropdown.Opened and not isClickOnDropdown and not isClickOnMenu then
+			if
+				Config.Window.CanDropdown
+				and (Dropdown.Opened or menuCanvas.Visible)
+				and not isClickOnDropdown
+				and not isClickOnMenu
+			then
 				DropdownModule:Close()
 			end
 		end
@@ -774,6 +838,15 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 			or Dropdown.DropdownFrame.UIElements.Main:GetPropertyChangedSignal("AbsolutePosition"),
 		UpdatePosition
 	)
+
+	if Config.WindUI.DropdownGui then
+		Creator.AddSignal(Config.WindUI.DropdownGui:GetPropertyChangedSignal("AbsoluteSize"), function()
+			if Dropdown.UIElements.MenuCanvas.Visible then
+				RecalculateListSize()
+				UpdatePosition()
+			end
+		end)
+	end
 
 	return DropdownModule
 end
