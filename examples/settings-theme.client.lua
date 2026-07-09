@@ -1,4 +1,4 @@
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/main/dist/main.lua"))()
+local WindUI = loadstring(game:HttpGet("https://article-hub-studio.github.io/WindUI-Skibidi/loader.lua"))()
 
 WindUI:SetMotionPreset("Liquid")
 

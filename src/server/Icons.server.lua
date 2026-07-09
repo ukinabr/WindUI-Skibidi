@@ -9,7 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 print("[Icons] Loading icons from GitHub...")
 
-local IconsURL = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/Main-v2.lua"
+local IconsURL = "https://article-hub-studio.github.io/WindUI-Skibidi/vendor/icons/Main-v2.lua"
 local Icons = nil
 
 local success, result = pcall(function()

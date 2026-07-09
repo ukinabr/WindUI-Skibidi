@@ -12,7 +12,7 @@ local DynamicShapeModule = require("./DynamicShape")
 
 local RenderStepped = RunService.Heartbeat
 
-local IconsURL = "https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"
+local IconsURL = "https://article-hub-studio.github.io/WindUI-Skibidi/vendor/icons/Main-v2.lua"
 
 local Icons
 if RunService:IsStudio() or not writefile then

@@ -1,16 +1,38 @@
+async function readThemesSource() {
+    try {
+        const req = eval("require");
+        const fs = req("fs");
+        const path = req("path");
+        const localPaths = [
+            path.resolve(process.cwd(), "../src/themes/Init.lua"),
+            path.resolve(process.cwd(), "src/themes/Init.lua"),
+        ];
+
+        for (const localPath of localPaths) {
+            if (fs.existsSync(localPath)) {
+                return fs.readFileSync(localPath, "utf8");
+            }
+        }
+    } catch {
+        // Continue to the hosted fallback below.
+    }
+
+    const url =
+        "https://article-hub-studio.github.io/WindUI-Skibidi/src/themes/Init.lua";
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!res.ok) throw new Error("Failed to fetch themes");
+    return res.text();
+}
+
 export async function getThemes(): Promise<Record<string, any>> {
     try {
-        const url =
-            "https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/refs/heads/main/src/themes/Init.lua";
-
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeout);
-
-        if (!res.ok) throw new Error("Failed to fetch themes");
-        const txt = await res.text();
+        const txt = await readThemesSource();
 
         const themeRegex =
             /([A-Za-z0-9_]+)\s*=\s*\{([^]*?)\},\s*(?=[A-Za-z0-9_]+\s*=|}\s*end|$)/g;
@@ -62,7 +84,7 @@ export async function getThemes(): Promise<Record<string, any>> {
 
         return themes;
     } catch (error) {
-        console.warn("Failed to fetch themes from GitHub:", error);
+        console.warn("Failed to load WindUI themes:", error);
         return {};
     }
 }

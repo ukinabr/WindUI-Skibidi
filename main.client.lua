@@ -25,7 +25,7 @@ do
 			WindUI = require(cloneref(ReplicatedStorage:WaitForChild("WindUI"):WaitForChild("Init")))
 		else
 			WindUI =
-				loadstring(game:HttpGet("https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/main/dist/main.lua"))()
+				loadstring(game:HttpGet("https://article-hub-studio.github.io/WindUI-Skibidi/loader.lua"))()
 		end
 	end
 end
@@ -566,7 +566,7 @@ do
 	})
 
 	AboutSection:Image({
-		Image = "https://repository-images.githubusercontent.com/880118829/22c020eb-d1b1-4b34-ac4d-e33fd88db38d",
+		Image = "https://article-hub-studio.github.io/WindUI-Skibidi/windui/previews/windui-modded-preview.png",
 		AspectRatio = "16:9",
 		Radius = 9,
 	})

@@ -12,7 +12,17 @@ import TypeTable from '@/components/TypeTable';
 
 
 ## Load methods
-### Selected version <Popover><PopoverTrigger><Badge className="pl-1.25"><Info />Recommended</Badge></PopoverTrigger><PopoverContent className="bg-white rounded-xl px-2.5 py-1.5 border-0 text-black text-xs font-medium">My updates may come out with errors, so it's better to use the `selected versions`</PopoverContent></Popover>
+### Pages loader <Popover><PopoverTrigger><Badge className="pl-1.25"><Info />Recommended</Badge></PopoverTrigger><PopoverContent className="bg-white rounded-xl px-2.5 py-1.5 border-0 text-black text-xs font-medium">Uses GitHub Pages first and falls back to CDN/release mirrors when a host is rate limited.</PopoverContent></Popover>
+```luau
+local WindUI = loadstring(game:HttpGet("https://article-hub-studio.github.io/WindUI-Skibidi/loader.lua"))()
+```
+
+### Direct Pages build
+```luau
+local WindUI = loadstring(game:HttpGet("https://article-hub-studio.github.io/WindUI-Skibidi/main.lua"))()
+```
+
+### Selected release
 <DynamicCodeBlock lang="luau" code={`local _version = "${await getLatestVersion()}"
 local WindUI = loadstring(game:HttpGet("https://github.com/article-hub-studio/WindUI-Skibidi/releases/download/" .. _version .. "/main.lua"))() `} />
 
@@ -21,10 +31,10 @@ local WindUI = loadstring(game:HttpGet("https://github.com/article-hub-studio/Wi
 local WindUI = loadstring(game:HttpGet("https://github.com/article-hub-studio/WindUI-Skibidi/releases/latest/download/main.lua"))()
 ```
 
-### `dist/main.lua` from [repo](https://github.com/article-hub-studio/WindUI-Skibidi) <Popover><PopoverTrigger><Badge className="pl-1.25" variant="destructive"><CircleAlert />Unstable</Badge></PopoverTrigger><PopoverContent className="bg-destructive/70 backdrop-blur-xl rounded-xl px-2.5 py-1.5 border-0 text-white text-xs font-medium">You can use the new features even before the releases. But this version may also have bugs</PopoverContent></Popover>
+### CDN fallback <Popover><PopoverTrigger><Badge className="pl-1.25" variant="destructive"><CircleAlert />Unstable</Badge></PopoverTrigger><PopoverContent className="bg-destructive/70 backdrop-blur-xl rounded-xl px-2.5 py-1.5 border-0 text-white text-xs font-medium">Use this only if Pages is blocked. The Pages loader is still safer because it rotates mirrors.</PopoverContent></Popover>
 
 ```luau
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/article-hub-studio/WindUI-Skibidi/main/dist/main.lua"))() 
+local WindUI = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/article-hub-studio/WindUI-Skibidi@main/dist/main.lua"))()
 ```
 
 ## Setup (optional)
