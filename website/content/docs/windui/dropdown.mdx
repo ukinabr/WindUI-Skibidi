@@ -11,7 +11,7 @@ import { TriangleAlert } from 'lucide-react';
 
 ## Dropdown Element
 
-Dropdowns allow users to select from a list of predefined Values. The modded dropdown is compact by default, supports searchable lists, clamps itself inside mobile viewports and uses a light liquid glass menu surface.
+Dropdowns allow users to select from a list of predefined Values. The modded dropdown is compact by default, supports searchable lists, clamps itself inside mobile viewports and uses a solid menu surface for better mobile readability.
 
 <Tabs defaultValue="small">
     <TabsList>
@@ -54,8 +54,6 @@ local Dropdown = Tab:Dropdown({
     Search = true,
     SearchPlaceholder = "Find option...",
     Compact = true,
-    Glass = true,
-    GlassTransparency = 0.08,
     Locked = false,
     Flag = "my_dropdown",
     Callback = function(selected)
@@ -150,8 +148,8 @@ Tab:Dropdown({
         { name: "SearchThreshold", type: "number?", description: "Value count that enables auto-search", default: "7" },
         { name: "Multi", type: "boolean?", description: "Allow multiple values to be selected", default: "false" },
         { name: "Compact", type: "boolean?", description: "Use smaller trigger, item and search sizing", default: "true" },
-        { name: "Glass", type: "boolean?", description: "Use light liquid glass surface for the menu", default: "true" },
-        { name: "GlassTransparency", type: "number?", description: "Opened menu glass image transparency", default: "0.08" },
+        { name: "Glass", type: "boolean?", description: "Opt in to the light liquid glass menu surface", default: "false" },
+        { name: "GlassTransparency", type: "number?", description: "Opened menu glass image transparency when Glass is true", default: "0" },
         { name: "ItemHeight", type: "number?", description: "Custom row height for compact menus", default: "32" },
         { name: "FullWidth / Full", type: "boolean?", description: "Use at least the trigger width for the menu", default: "false" },
         { name: "MenuWidth", type: "number?", description: "Dropdown menu width", default: "164" },

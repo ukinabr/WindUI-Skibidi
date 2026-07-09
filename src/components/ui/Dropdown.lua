@@ -11,8 +11,6 @@ local Camera = Workspace.CurrentCamera
 
 local CurrentCamera = workspace.CurrentCamera
 
-local CreateInput = require("./Input").New
-
 local Creator = require("../../modules/Creator")
 local Motion = require("../../modules/Motion")
 local New = Creator.New
@@ -311,6 +309,95 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 
 	local SearchLabel
 	local SearchQuery = ""
+	local SearchBox
+	local ApplySearchFilter
+
+	local function CreateSearchBar()
+		local Radius = math.max(Element.MenuCorner - Element.MenuPadding, 6)
+		local IconData = Creator.Icon("search")
+
+		SearchBox = New("TextBox", {
+			Name = "TextBox",
+			BackgroundTransparency = 1,
+			ClearTextOnFocus = false,
+			ClipsDescendants = true,
+			FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium),
+			PlaceholderText = Dropdown.SearchPlaceholder,
+			Text = SearchQuery,
+			TextColor3 = Color3.new(1, 1, 1),
+			TextSize = 14,
+			TextScaled = false,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			TextWrapped = false,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Center,
+			ThemeTag = {
+				PlaceholderColor3 = "PlaceholderText",
+				TextColor3 = "Text",
+			},
+			Size = UDim2.new(1, -24, 1, 0),
+		})
+
+		local SearchFrame = Creator.NewRoundFrame(Radius, "Squircle", {
+			Name = "SearchBar",
+			LayoutOrder = 0,
+			Parent = Dropdown.UIElements.Menu,
+			Size = UDim2.new(1, 0, 0, Element.SearchBarHeight),
+			ImageTransparency = 0,
+			ThemeTag = {
+				ImageColor3 = "DropdownTabBackground",
+			},
+		}, {
+			Creator.NewRoundFrame(Radius, "Squircle", {
+				Name = "Outline",
+				Size = UDim2.new(1, 1, 1, 1),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				ImageTransparency = 0.72,
+				ThemeTag = {
+					ImageColor3 = "DropdownTabBorder",
+				},
+			}),
+			New("UIPadding", {
+				PaddingLeft = UDim.new(0, 10),
+				PaddingRight = UDim.new(0, 10),
+			}),
+			New("UIListLayout", {
+				FillDirection = "Horizontal",
+				HorizontalAlignment = "Left",
+				VerticalAlignment = "Center",
+				Padding = UDim.new(0, 8),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
+			New("ImageLabel", {
+				Name = "Icon",
+				BackgroundTransparency = 1,
+				Image = IconData[1],
+				ImageRectOffset = IconData[2].ImageRectPosition,
+				ImageRectSize = IconData[2].ImageRectSize,
+				ImageTransparency = 0.35,
+				Size = UDim2.new(0, 15, 0, 15),
+				ThemeTag = {
+					ImageColor3 = "Icon",
+				},
+			}),
+			SearchBox,
+		})
+
+		Creator.AddSignal(SearchBox:GetPropertyChangedSignal("Text"), function()
+			ApplySearchFilter(SearchBox.Text)
+		end)
+
+		Creator.AddSignal(SearchBox.Focused, function()
+			Tween(SearchFrame.Outline, 0.12, { ImageTransparency = 0.48 }):Play()
+		end)
+
+		Creator.AddSignal(SearchBox.FocusLost, function()
+			Tween(SearchFrame.Outline, 0.12, { ImageTransparency = 0.72 }):Play()
+		end)
+
+		return SearchFrame
+	end
 
 	local function GetSearchText(Tab)
 		local parts = {
@@ -334,13 +421,22 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		return string.lower(table.concat(normalized, " "))
 	end
 
-	local function ApplySearchFilter(Query)
+	function ApplySearchFilter(Query)
 		SearchQuery = string.lower(tostring(Query or ""))
 
 		for _, tab in next, Dropdown.Tabs do
 			if tab.UIElements and tab.UIElements.TabItem then
-				tab.UIElements.TabItem.Visible = SearchQuery == ""
-					or string.find(GetSearchText(tab), SearchQuery, 1, true) ~= nil
+				local TabItem = tab.UIElements.TabItem
+				local Visible = SearchQuery == "" or string.find(GetSearchText(tab), SearchQuery, 1, true) ~= nil
+				if Visible then
+					TabItem.Visible = true
+					TabItem.Parent = Dropdown.UIElements.Menu.Frame.ScrollingFrame
+					TabItem.Size = tab.Size
+					TabItem.AutomaticSize = tab.AutomaticSize
+				else
+					TabItem.Visible = false
+					TabItem.Parent = nil
+				end
 			end
 		end
 
@@ -350,6 +446,19 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		if Dropdown.UIElements.MenuCanvas.Visible then
 			UpdatePosition()
 		end
+
+		task.defer(function()
+			if Config.Window.Destroyed then
+				return
+			end
+
+			RecalculateCanvasSize()
+			RecalculateListSize()
+
+			if Dropdown.UIElements.MenuCanvas.Visible then
+				UpdatePosition()
+			end
+		end)
 	end
 
 	function DropdownModule:Display()
@@ -473,6 +582,12 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 			return
 		end
 
+		for _, Tab in next, Dropdown.Tabs do
+			if Tab.UIElements and Tab.UIElements.TabItem then
+				Tab.UIElements.TabItem:Destroy()
+			end
+		end
+
 		for _, Elementt in next, Dropdown.UIElements.Menu.Frame.ScrollingFrame:GetChildren() do
 			if not Elementt:IsA("UIListLayout") then
 				Elementt:Destroy()
@@ -483,30 +598,9 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 
 		if Dropdown.SearchBarEnabled then
 			if not SearchLabel then
-				SearchLabel = CreateInput(
-					Dropdown.SearchPlaceholder,
-					"search",
-					Dropdown.UIElements.Menu,
-					nil,
-					function(Value)
-						ApplySearchFilter(Value)
-					end,
-					true,
-					Element.MenuCorner - Element.MenuPadding
-				)
-				SearchLabel.LayoutOrder = 0
-				SearchLabel.Size = UDim2.new(1, 0, 0, Element.SearchBarHeight)
-				SearchLabel.Position = UDim2.new(0, 0, 0, 0)
-				SearchLabel.Name = "SearchBar"
-
-				for _, Descendant in next, SearchLabel:GetDescendants() do
-					if Descendant:IsA("TextBox") then
-						Descendant.TextSize = 14
-						Descendant.PlaceholderText = Dropdown.SearchPlaceholder
-					elseif Descendant:IsA("ImageLabel") then
-						Descendant.Size = UDim2.new(0, 16, 0, 16)
-					end
-				end
+				SearchLabel = CreateSearchBar()
+			elseif SearchBox then
+				SearchBox.PlaceholderText = Dropdown.SearchPlaceholder
 			end
 		end
 
@@ -636,6 +730,8 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 					},
 					true
 				)
+				TabMain.Size = TabMain.UIElements.TabItem.Size
+				TabMain.AutomaticSize = TabMain.UIElements.TabItem.AutomaticSize
 
 				if TabMain.Locked then
 					TabMain.UIElements.TabItem.Frame.Title.TextLabel.TextTransparency = 0.6
