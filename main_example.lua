@@ -183,6 +183,7 @@ SettingsTab:Dropdown({
 	Desc = "Auto chooses up or down and matches the trigger width.",
 	Values = { "Auto", "Down", "Up" },
 	Value = "Auto",
+	Search = true,
 	FullWidth = true,
 	Direction = "Auto",
 	Side = "Left",
@@ -193,17 +194,19 @@ local DropdownRow = SettingsTab:HStack({
 })
 DropdownRow:Dropdown({
 	Title = "Open Left",
-	Values = { "Alpha", "Beta", "Gamma" },
+	Values = { "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Omega" },
 	Value = "Alpha",
+	Search = true,
 	Direction = "Left",
-	MenuWidth = 170,
+	MenuWidth = 164,
 })
 DropdownRow:Dropdown({
 	Title = "Open Right",
-	Values = { "North", "East", "South", "West" },
+	Values = { "North", "East", "South", "West", "Center", "Upper", "Lower" },
 	Value = "East",
+	Search = true,
 	Direction = "Right",
-	MenuWidth = 170,
+	MenuWidth = 164,
 })
 
 SettingsTab:Slider({

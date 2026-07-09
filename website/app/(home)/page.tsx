@@ -1,289 +1,449 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import AnimatedList from "@/components/AnimatedList";
-import loadstring from "@/lib/loadstring";
-
-import {
-    Check,
-    Search,
-    Cpu,
-    Settings,
-    Zap,
-    Database,
-    Star,
-    ChevronRight,
-    ExternalLink,
-    BookOpen,
-    Moon,
-} from "lucide-react";
-
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
-import { Marquee } from "@/components/Marquee";
-import aboutTH from "../data/about.treehub";
-import aboutTH2 from "../data/about.treehub.2";
-import Logo from "@/components/Logo";
+import {
+    ArrowRight,
+    BadgeCheck,
+    BookOpen,
+    Code2,
+    Crown,
+    ExternalLink,
+    Gem,
+    LayoutDashboard,
+    MonitorSmartphone,
+    Palette,
+    PanelsTopLeft,
+    Sparkles,
+} from "lucide-react";
+import loadstring from "@/lib/loadstring";
 import BrandName from "../data/BrandName";
-import { useEffect, useState } from "react";
-import TopbarButton from "@/components/TopbarButton";
-import { useRouter } from "next/navigation";
-import DiscordLogo from "@/components/DiscordLogo";
+
+const previewImages = [
+    {
+        src: "/windui/previews/windui-modded-preview.png",
+        title: "Full interface preview",
+        detail: "Desktop, mobile and liquid glass components in one frame.",
+        span: "lg:col-span-2",
+    },
+    {
+        src: "/windui/banners/Window.png",
+        title: "Window shell",
+        detail: "Mac style topbar, sidebar tabs and compact content panels.",
+        span: "",
+    },
+    {
+        src: "/windui/banners/Themes.png",
+        title: "Theme picker",
+        detail: "Theme states, config controls and dark glass treatment.",
+        span: "",
+    },
+    {
+        src: "/windui/banners/TabSection.png",
+        title: "Tab section",
+        detail: "Nested tab flows without wasting vertical space.",
+        span: "",
+    },
+    {
+        src: "/windui/banners/HStackVStack.png",
+        title: "Layout primitives",
+        detail: "HStack and VStack moved into useful layout examples.",
+        span: "",
+    },
+];
+
+const elementGroups = [
+    {
+        title: "Core Controls",
+        icon: LayoutDashboard,
+        description: "Fast input primitives for scripts that need mobile and PC support.",
+        items: [
+            ["Button", "/docs/windui/button"],
+            ["Toggle", "/docs/windui/toggle"],
+            ["Slider", "/docs/windui/slider"],
+            ["Stepper", "/docs/windui/stepper"],
+            ["Input", "/docs/windui/input"],
+            ["TextArea", "/docs/windui/textarea"],
+            ["Dropdown", "/docs/windui/dropdown"],
+        ],
+    },
+    {
+        title: "Choice Inputs",
+        icon: PanelsTopLeft,
+        description: "Grouped selection patterns that keep mobile screens readable.",
+        items: [
+            ["Segmented Control", "/docs/windui/segmentedcontrol"],
+            ["Radio Group", "/docs/windui/radiogroup"],
+            ["Checkbox Group", "/docs/windui/checkboxgroup"],
+            ["Chip List", "/docs/windui/chiplist"],
+            ["Colorpicker", "/docs/windui/colorpicker"],
+            ["Keybind", "/docs/windui/keybind"],
+        ],
+    },
+    {
+        title: "Display Cards",
+        icon: BadgeCheck,
+        description: "Cards for status, metrics, Discord links and dense script dashboards.",
+        items: [
+            ["Callout", "/docs/windui/callout"],
+            ["Badge", "/docs/windui/badge"],
+            ["StatusCard", "/docs/windui/statuscard"],
+            ["StatCard", "/docs/windui/statcard"],
+            ["KeyValue", "/docs/windui/keyvalue"],
+            ["ActionList", "/docs/windui/actionlist"],
+            ["DiscordCard", "/docs/windui/discordcard"],
+        ],
+    },
+    {
+        title: "Motion And Media",
+        icon: Sparkles,
+        description: "Visual elements for animated sections, previews and richer panels.",
+        items: [
+            ["TabBox", "/docs/windui/tabbox"],
+            ["Timeline", "/docs/windui/timeline"],
+            ["Accordion", "/docs/windui/accordion"],
+            ["Path2D", "/docs/windui/path2d"],
+            ["Image", "/docs/windui/image"],
+            ["Viewport", "/docs/windui/viewport"],
+            ["ProgressBar", "/docs/windui/progressbar"],
+        ],
+    },
+];
+
+const stats = [
+    ["40+", "Documented pages"],
+    ["20+", "Modern elements"],
+    ["Mobile", "Executor friendly"],
+    ["Liquid", "Glass modded UI"],
+];
+
+function asset(path: string) {
+    return `${process.env.NEXT_PUBLIC_BASE_PATH || ""}${path}`;
+}
 
 export default function HomePage() {
-    const [isLoaded, setIsLoaded] = useState(false);
-    const router = useRouter();
-
-    useEffect(() => {
-        setTimeout(() => setIsLoaded(true), 20);
-    }, []);
-    1;
     return (
-        <main className="flex flex-1 flex-col justify-left items-center p-0 overflow-x-clip bg-background">
-            {/* temp hidden */}
-            <section
-                id="landing"
-                className="hidden! flex flex-col flex-1 justify-center gap-2 w-full px-4 lg:px-24 items-start lg:pt-[32dvh] pt-[26dvh] pb-[40dvh] h-[100vh]! relative"
-            >
-                {/* Hidden */}
-                <div className="absolute! right-6 lg:right-24 w-78! h-[364px] flex flex-row items-center justify-center top-[32dvh] hidden">
-                    <Logo className="opacity-8 lg:opacity-30 relative w-full! h-full! " />
+        <main className="min-h-dvh overflow-x-clip bg-[#05070b] text-white">
+            <section className="relative overflow-hidden border-b border-white/10">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:80px_80px] opacity-20" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(20,184,166,0.22),transparent_34%),linear-gradient(135deg,rgba(37,99,235,0.18),transparent_38%,rgba(234,179,8,0.13))]" />
 
-                    <div className="absolute w-full! h-full! opacity-7 lg:opacity-14">
-                        {/* Rotated */}
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-6"
-                            style={{ rotate: "-26.666deg" }}
-                        ></span>
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-19"
-                            style={{ rotate: "-26.6deg" }}
-                        ></span>
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-57"
-                            style={{ rotate: "-26.6deg" }}
-                        ></span>
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-70"
-                            style={{ rotate: "-26.6deg" }}
-                        ></span>
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-76"
-                            style={{ rotate: "-26.6deg" }}
-                        ></span>
-                        <span
-                            className="bg-foreground w-800! h-0.5! left-[50%] transform -translate-x-1/2 absolute top-83"
-                            style={{ rotate: "-26.6deg" }}
-                        ></span>
-
-                        {/* Vertical */}
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-0"></span>
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-27.5"></span>
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-33"></span>
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-38.75"></span>
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-51.5"></span>
-                        <span className="bg-foreground h-800! w-0.5! -top-[50%] transform -translate-y-1/2 absolute left-77.5"></span>
-                    </div>
-                </div>
-
-                <AnimatedList
-                    staggerDelay={100}
-                    className="flex flex-col gap-7 items-start relative w-fit!"
-                >
-                    <TopbarButton
-                        onClick={() => router.push("/blog/")}
-                        isScrolled={true}
-                        className="w-fit!"
-                        scaleOnHold={1.1}
-                        brightnessOnHold={140}
-                    >
-                        <div className="flex flex-row items-center font-normal text-xl text-foreground/95 rounded-full gap-2 w-fit! tracking-tight dark:bg-foreground/14 bg-foreground/8 dark:hover:bg-foreground/18 hover:bg-foreground/10 px-3 py-0.5 brightness-140 cursor-pointer">
-                            Branchy is released! (nope)
-                            <ChevronRight className="size-6 -mr-2 " />
+                <div className="relative mx-auto grid min-h-[calc(100dvh-64px)] w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+                    <div className="flex flex-col gap-8">
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/14 bg-white/8 px-3 py-1.5 text-sm font-medium text-white/78 backdrop-blur-md">
+                            <Sparkles className="size-4 text-cyan-300" />
+                            Roblox Luau UI library fork
                         </div>
-                    </TopbarButton>
 
-                    <p className="text-left text-[48px] lg:text-[64px] max-sm:text-[48px] font-normal tracking-tighter dark:text-[#f9f9ff] text-base/14 lg:text-base/16 max-sm:text-base/14">
-                        Discover new <br /> universal script
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row items-start justify-start gap-2 z-9999999!">
-                        <Link href="/getting-started" className="h-full">
-                            <Button
-                                className="rounded-full text-[20px] font-medium tracking-tight h-full px-5! backdrop-blur-lg! bg-brand! text-white hover:brightness-120!"
-                                variant="default"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-5! h-5! -ml-1"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        fill="currentColor"
-                                        fillRule="evenodd"
-                                        d="M4.172 3.172C3 4.343 3 6.229 3 10v4c0 3.771 0 5.657 1.172 6.828S7.229 22 11 22h2c3.771 0 5.657 0 6.828-1.172S21 17.771 21 14v-4c0-3.771 0-5.657-1.172-6.828S16.771 2 13 2h-2C7.229 2 5.343 2 4.172 3.172M7.25 8A.75.75 0 0 1 8 7.25h8a.75.75 0 0 1 0 1.5H8A.75.75 0 0 1 7.25 8m0 4a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1-.75-.75M8 15.25a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                                Get script
-                            </Button>
-                        </Link>
-                        <Link href="/docs" className="h-full">
-                            <Button
-                                className="rounded-full text-[20px] font-medium tracking-tight h-full px-5! dark:bg-[#EFEFFF]/20 bg-[#000010]/48 hover:bg-[#000010]/60 dark:hover:bg-[#EFEFFF]/32 text-white backdrop-blur-lg!"
-                                variant="secondary"
-                            >
-                                Documentation
-                            </Button>
-                        </Link>
-                        <Link
-                            href="https://github.com/article-hub-studio/WindUI-Skibidi"
-                            className="h-full"
-                        >
-                            <Button
-                                className="rounded-full text-[20px] font-medium tracking-tight h-full px-5! bg-black/8 dark:bg-white/8 hover:bg-black/12 dark:hover:bg-white/12 backdrop-blur-lg!"
-                                variant="secondary"
-                            >
-                                GitHub
-                            </Button>
-                        </Link>
-                    </div>
-                </AnimatedList>
-
-                <img
-                    src="/treehub/banners/Screen.png"
-                    alt=""
-                    className={`absolute lg:left-170 w-[calc(100%-170*4px-24*4px)] ${isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-75"} transition-opacity duration-1300 ease-out delay-200 max-xl:hidden z-999999 shadow-black/40 shadow-2xl rounded-[16px]`}
-                />
-
-                <span className="bg-gradient-to-b from-background/0 to-background absolute bottom-0 z-999 w-full h-80 pointer-events-none left-0"></span>
-            </section>
-
-            <section className="hidden! px-4 lg:px-24 z-999999 bg-background lg:hidden">
-                <AnimatedList staggerDelay={0} className="">
-                    <img src="/treehub/banners/Screen.png" alt="" />
-                    <div></div>
-                </AnimatedList>
-            </section>
-
-            <section className="hidden! pt-80 w-screen bg-background z-9999999">
-                <p className="inline-block text-5xl w-full text-center font-medium tracking-tighter pb-18">
-                    What is the {""}
-                    <span
-                        className="bg-gradient-to-r from-[#30FF6A] to-[#30F5FF] font-medium
-      bg-clip-text text-transparent"
-                    >
-                        {BrandName}
-                    </span>
-                    ?
-                </p>
-
-                <div className="space-y-2 w-full">
-                    <Marquee speed={50} gap={2}>
-                        <div className="flex flex-row items-center gap-2">
-                            {aboutTH().map((info, index) => (
-                                <p
-                                    key={index}
-                                    className="text-lg font-medium opacity-80 tracking-tight dark:bg-[#EEEEFF]/12 bg-black/6 px-4.5 py-2 rounded-full"
-                                >
-                                    {info.title}
-                                </p>
-                            ))}
-                        </div>
-                    </Marquee>
-                    <Marquee speed={50} gap={2} reverse={true}>
-                        <div className="flex flex-row items-center gap-2">
-                            {aboutTH2().map((info, index) => (
-                                <p
-                                    key={index}
-                                    className="text-lg font-medium opacity-80 tracking-tight dark:bg-[#EEEEFF]/12 bg-black/6 px-4.5 py-2 rounded-full"
-                                >
-                                    {info.title}
-                                </p>
-                            ))}
-                        </div>
-                    </Marquee>
-                </div>
-            </section>
-
-            <footer className="hidden!  mt-40 w-full">
-                <div className="flex flex-row justify-between items-start py-12 px-3 lg:px-24 w-full gap-24 bg-accent/50">
-                    <div className="flex flex-col w-fit! gap-2">
-                        <div className="flex flex-row items-center gap-1 w-fit!">
-                            <Logo className="h-5! text-brand" />
-                            <span className="font-semibold text-[22px] tracking-tighter">
+                        <div className="flex flex-col gap-5">
+                            <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl">
                                 {BrandName}
-                            </span>
-                        </div>
-
-                        <p className="text-sm opacity-80 mt-2 tracking-tight font-medium">
-                            © {new Date().getFullYear()} {BrandName}. All rights
-                            reserved.
-                        </p>
-
-                        <div className="flex flex-row items-center">
-                            <TopbarButton
-                                onClick={() =>
-                                    router.push(
-                                        "https://discord.gg/ftgs-development-hub-1300692552005189632",
-                                    )
-                                }
-                                isScrolled={true}
-                                className="w-fit!"
-                                scaleOnHold={1.3}
-                                brightnessOnHold={180}
-                            >
-                                <div className="flex flex-row aspect-square rounded-full p-2 bg-foreground/10 items-center justify-center w-10! h-10!">
-                                    <DiscordLogo className="h-4! opacity-80" />
-                                </div>
-                            </TopbarButton>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-row justify-between flex-1 w-full gap-12">
-                        <div className="w-full flex flex-col gap-2">
-                            <p className="text-lg font-medium pb-3 tracking-tight">
-                                Links
+                            </h1>
+                            <p className="max-w-2xl text-base leading-7 text-white/68 sm:text-lg">
+                                A modded WindUI build focused on liquid glass
+                                visuals, mobile support, richer elements and
+                                practical docs for executor scripts.
                             </p>
-                            <Link
-                                href="/getting-started"
-                                className="text-sm font-medium opacity-80 hover:opacity-100 transition-opacity tracking-tight"
-                            >
-                                Get script
-                            </Link>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row">
                             <Link
                                 href="/docs"
-                                className="text-sm font-medium opacity-80 hover:opacity-100 transition-opacity tracking-tight"
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black transition duration-200 hover:bg-cyan-100"
                             >
-                                Documentation
+                                Open docs
+                                <ArrowRight className="size-4" />
                             </Link>
                             <Link
-                                href="/blog/"
-                                className="text-sm font-medium opacity-80 hover:opacity-100 transition-opacity tracking-tight"
+                                href="/docs/windui/elements-overview"
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-5 text-sm font-semibold text-white transition duration-200 hover:bg-white/14"
                             >
-                                Blog
+                                Browse elements
+                                <BookOpen className="size-4" />
                             </Link>
+                            <Link
+                                href="https://github.com/article-hub-studio/WindUI-Skibidi"
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/20 px-5 text-sm font-semibold text-white/84 transition duration-200 hover:bg-white/10"
+                            >
+                                GitHub
+                                <ExternalLink className="size-4" />
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            {stats.map(([value, label]) => (
+                                <div
+                                    key={value}
+                                    className="rounded-2xl border border-white/10 bg-white/[0.055] p-4"
+                                >
+                                    <p className="text-xl font-semibold text-white">
+                                        {value}
+                                    </p>
+                                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+                                        {label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <div className="absolute -inset-3 rounded-[34px] border border-cyan-300/16 bg-cyan-300/6" />
+                        <div className="relative overflow-hidden rounded-[30px] border border-white/14 bg-black/40 shadow-2xl shadow-cyan-950/50">
+                            <img
+                                src={asset("/windui/previews/windui-modded-preview.png")}
+                                alt="WindUI Modded interface preview"
+                                className="aspect-[16/9] w-full object-cover"
+                            />
+                            <div className="border-t border-white/10 bg-black/60 p-4">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <p className="text-sm font-semibold text-white">
+                                            Liquid glass preview
+                                        </p>
+                                        <p className="text-sm text-white/55">
+                                            Desktop layout, mobile panel, dropdowns,
+                                            keybinds and premium accents.
+                                        </p>
+                                    </div>
+                                    <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/28 bg-amber-300/10 px-3 py-1.5 text-sm font-semibold text-amber-200">
+                                        <Crown className="size-4" />
+                                        Premium ready
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </footer>
-
-            <section className="h-[100dvh]! flex flex-col items-center justify-center gap-5">
-                <AnimatedList
-                    staggerDelay={100}
-                    className="flex flex-col items-center justify-center gap-5"
-                >
-                    <p className="text-2xl font-medium tracking-tighter">
-                        Something interesting is coming...
-                    </p>
-                    <Button
-                        className="rounded-full bg-brand! text-white! font-medium tracking-tight"
-                        onClick={() => router.push(`/docs/`)}
-                    >
-                        Documentation
-                    </Button>
-                </AnimatedList>
             </section>
+
+            <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-6">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-200/80">
+                        Maintainer
+                    </p>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                        article-hub-studio
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-white/58">
+                        This website and modded fork are maintained for the
+                        WindUI-Skibidi repo.
+                    </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-6">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-200/80">
+                        Original credit
+                    </p>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                        Original WindUI
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-white/58">
+                        Credit to the original WindUI project and its author.
+                        This fork keeps the familiar API while documenting the
+                        modded feature set.
+                    </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-6">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
+                        Runtime
+                    </p>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                        Loadstring ready
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-white/58">
+                        Docs point to the current article-hub-studio repo and
+                        release assets.
+                    </p>
+                </div>
+            </section>
+
+            <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/45">
+                            Preview UI
+                        </p>
+                        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                            Real interface references
+                        </h2>
+                    </div>
+                    <p className="max-w-xl text-sm leading-6 text-white/58">
+                        The site now shows actual UI previews, not an empty
+                        placeholder. These images cover windows, themes,
+                        layout primitives and tab sections.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    {previewImages.map((item) => (
+                        <article
+                            key={item.src}
+                            className={`overflow-hidden rounded-3xl border border-white/10 bg-white/[0.055] ${item.span}`}
+                        >
+                            <img
+                                src={asset(item.src)}
+                                alt={item.title}
+                                className="aspect-[16/9] w-full object-cover"
+                            />
+                            <div className="border-t border-white/10 p-5">
+                                <h3 className="text-lg font-semibold">
+                                    {item.title}
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-white/56">
+                                    {item.detail}
+                                </p>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </section>
+
+            <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+                    <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/45">
+                            Elements
+                        </p>
+                        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                            Split by real workflow
+                        </h2>
+                    </div>
+                    <p className="text-sm leading-6 text-white/58">
+                        Elements are grouped by how scripts actually use them:
+                        input controls, selections, display cards and richer
+                        animated media. The full docs page includes every new
+                        element with quick links.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {elementGroups.map((group) => {
+                        const Icon = group.icon;
+                        return (
+                            <article
+                                key={group.title}
+                                className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.035))] p-6"
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/22 bg-cyan-300/10 text-cyan-200">
+                                        <Icon className="size-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-semibold tracking-tight">
+                                            {group.title}
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-6 text-white/56">
+                                            {group.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                    {group.items.map(([name, href]) => (
+                                        <Link
+                                            key={href}
+                                            href={href}
+                                            className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/18 px-4 py-3 text-sm font-semibold text-white/82 transition duration-200 hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white"
+                                        >
+                                            {name}
+                                            <ArrowRight className="size-4 text-white/40" />
+                                        </Link>
+                                    ))}
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+            </section>
+
+            <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 py-12 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-6">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-11 items-center justify-center rounded-2xl border border-emerald-300/20 bg-emerald-300/10 text-emerald-200">
+                            <Code2 className="size-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-semibold tracking-tight">
+                                Loadstring
+                            </h2>
+                            <p className="text-sm text-white/55">
+                                Current repo URL, ready for release builds.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="mt-5">
+                        <DynamicCodeBlock lang="luau" code={loadstring} />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Link
+                        href="/docs/windui/themes"
+                        className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition duration-200 hover:border-cyan-300/28 hover:bg-cyan-300/8"
+                    >
+                        <Palette className="size-6 text-cyan-200" />
+                        <h3 className="mt-5 text-xl font-semibold tracking-tight">
+                            Themes
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-white/56">
+                            Dark, light and custom gradient themes for the
+                            modded build.
+                        </p>
+                    </Link>
+                    <Link
+                        href="/docs/windui/keysystem"
+                        className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition duration-200 hover:border-emerald-300/28 hover:bg-emerald-300/8"
+                    >
+                        <Gem className="size-6 text-emerald-200" />
+                        <h3 className="mt-5 text-xl font-semibold tracking-tight">
+                            Key system
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-white/56">
+                            Access gates, custom notes and mobile friendly
+                            setup examples.
+                        </p>
+                    </Link>
+                    <Link
+                        href="/docs/windui/tabbox"
+                        className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition duration-200 hover:border-amber-300/28 hover:bg-amber-300/8"
+                    >
+                        <PanelsTopLeft className="size-6 text-amber-200" />
+                        <h3 className="mt-5 text-xl font-semibold tracking-tight">
+                            TabBox
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-white/56">
+                            Multi page sections with cleaner spacing and page
+                            switch animation.
+                        </p>
+                    </Link>
+                    <Link
+                        href="/docs/windui/keybind"
+                        className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition duration-200 hover:border-blue-300/28 hover:bg-blue-300/8"
+                    >
+                        <MonitorSmartphone className="size-6 text-blue-200" />
+                        <h3 className="mt-5 text-xl font-semibold tracking-tight">
+                            Keybind menu
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-white/56">
+                            Mobile-first binding UI with compact interaction
+                            patterns.
+                        </p>
+                    </Link>
+                </div>
+            </section>
+
+            <footer className="border-t border-white/10 px-4 py-8 text-sm text-white/52 sm:px-6 lg:px-8">
+                <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p>
+                        (c) {new Date().getFullYear()} article-hub-studio.
+                        WindUI Modded docs.
+                    </p>
+                    <p>
+                        Original WindUI credit retained. Fork repo:
+                        article-hub-studio/WindUI-Skibidi.
+                    </p>
+                </div>
+            </footer>
         </main>
     );
 }

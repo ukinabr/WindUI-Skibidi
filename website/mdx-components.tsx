@@ -11,6 +11,15 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
                 <Pre>{props.children}</Pre>
             </CodeBlock>
         ),
+        img: ({ src, ...props }) => {
+            const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+            const source =
+                typeof src === "string" && src.startsWith("/")
+                    ? `${basePath}${src}`
+                    : src;
+
+            return <img src={source} {...props} />;
+        },
         Tabs,
         Tab,
         ...components,

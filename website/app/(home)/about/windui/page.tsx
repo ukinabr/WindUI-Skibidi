@@ -18,14 +18,14 @@ export default function WindUIPage() {
                 <div className="md:w-fit! w-full flex-col items-start space-y-5 md:p-14 p-3">
                     <div className="flex flex-col gap-1">
                         <h1 className="md:text-4xl! tracking-tight">
-                            WindUI Library
+                            WindUI Modded Library
                         </h1>
                         <p className="opacity-70 md:text-xl! tracking-tight">
                             Luau
                         </p>
                         <p className="opacity-50 tracking-tight">
-                            clean ui with modern design <br />
-                            released over a year ago and still has updates
+                            liquid glass fork with mobile support <br />
+                            credited to the original WindUI project
                         </p>
                     </div>
                     <div className="flex flex-row items-start justify-start w-fit! gap-2">

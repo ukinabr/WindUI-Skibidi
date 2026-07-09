@@ -2576,12 +2576,12 @@
                             "__type": "Button"
                         },
                         {
-                            "Desc": "github.com/Footagesus/WindUI",
+                            "Desc": "github.com/article-hub-studio/WindUI-Skibidi",
                             "Destroy": "function",
                             "Locked": false,
                             "ParagraphFrame": {
                                 "Color": "Grey",
-                                "Desc": "github.com/Footagesus/WindUI",
+                                "Desc": "github.com/article-hub-studio/WindUI-Skibidi",
                                 "Destroy": "function",
                                 "Hover": false,
                                 "IconThemed": false,

@@ -1,6 +1,6 @@
 ---
 title: Dropdown
-description: Create dropdown select menus in WindUI
+description: Create dropdown select menus in WindUI Modded
 ---
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -11,7 +11,7 @@ import { TriangleAlert } from 'lucide-react';
 
 ## Dropdown Element
 
-Dropdowns allow users to select from a list of predefined Values. They're useful for presenting multiple choices in a compact format.
+Dropdowns allow users to select from a list of predefined Values. The modded dropdown is compact by default, supports searchable lists, clamps itself inside mobile viewports and uses a light liquid glass menu surface.
 
 <Tabs defaultValue="small">
     <TabsList>
@@ -25,6 +25,7 @@ Dropdowns allow users to select from a list of predefined Values. They're useful
 ```luau
 local Dropdown = Tab:Dropdown({
     Title = "Select Value",
+    Search = true,
     Values = {
         "Option 1",
         "Option 2",
@@ -50,6 +51,11 @@ local Dropdown = Tab:Dropdown({
     },
     Value = "Option 1",
     Multi = false,
+    Search = true,
+    SearchPlaceholder = "Find option...",
+    Compact = true,
+    Glass = true,
+    GlassTransparency = 0.08,
     Locked = false,
     Flag = "my_dropdown",
     Callback = function(selected)
@@ -111,8 +117,8 @@ Tab:Dropdown({
     Desc = "Menu follows the full row width",
     Values = { "Alpha", "Beta", "Gamma" },
     FullWidth = true,
-    MenuWidth = 260,
-    MenuMaxWidth = 520,
+    MenuWidth = 220,
+    MenuMaxWidth = 420,
     Direction = "Down", -- Auto, Down, Up, Left, Right
     Side = "Right", -- Left, Center, Right
     MobileDirection = "Down",
@@ -138,11 +144,18 @@ Tab:Dropdown({
         { name: "Values", type: "table", description: "List of dropdown values or advanced value objects", default: "{}" },
         { name: "Value", type: "string?", description: "Default selected value", default: "nil" },
         { name: "AllowNone", type: "boolean?", description: "Allow empty selection", default: "false" },
-        { name: "SearchBarEnabled", type: "boolean?", description: "Enable search bar inside dropdown", default: "false" },
+        { name: "Search / EnableSearch", type: "boolean?", description: "Force the compact search bar on", default: "auto for 7+ values" },
+        { name: "SearchBarEnabled", type: "boolean?", description: "Legacy search toggle. false disables auto-search", default: "auto" },
+        { name: "SearchPlaceholder", type: "string?", description: "Placeholder text for the search input", default: "Search..." },
+        { name: "SearchThreshold", type: "number?", description: "Value count that enables auto-search", default: "7" },
         { name: "Multi", type: "boolean?", description: "Allow multiple values to be selected", default: "false" },
+        { name: "Compact", type: "boolean?", description: "Use smaller trigger, item and search sizing", default: "true" },
+        { name: "Glass", type: "boolean?", description: "Use light liquid glass surface for the menu", default: "true" },
+        { name: "GlassTransparency", type: "number?", description: "Opened menu glass image transparency", default: "0.08" },
+        { name: "ItemHeight", type: "number?", description: "Custom row height for compact menus", default: "32" },
         { name: "FullWidth / Full", type: "boolean?", description: "Use at least the trigger width for the menu", default: "false" },
-        { name: "MenuWidth", type: "number?", description: "Dropdown menu width", default: "180" },
-        { name: "MenuMaxWidth", type: "number?", description: "Maximum menu width", default: "520" },
+        { name: "MenuWidth", type: "number?", description: "Dropdown menu width", default: "164" },
+        { name: "MenuMaxWidth", type: "number?", description: "Maximum menu width", default: "420" },
         { name: "Direction / OpenDirection", type: "string?", description: "Auto, Down, Up, Left or Right", default: "Auto" },
         { name: "Side / Align", type: "string?", description: "Left, Center or Right alignment for Up/Down menus", default: "Right" },
         { name: "MobileDirection", type: "string?", description: "Direction override for mobile viewports", default: "Direction" },
@@ -217,6 +230,7 @@ Tab:Dropdown({
 ```luau
 Tab:Dropdown({
     Title = "Choose Theme",
+    Search = true,
     Values = {
         "Light",
         "Dark",
@@ -241,6 +255,7 @@ Tab:Dropdown({
         "Feature C",
         "Feature D"
     },
+    Search = true,
     Multi = true,
     AllowNone = true,
     Callback = function(selected)

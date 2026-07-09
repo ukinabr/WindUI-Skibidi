@@ -72,10 +72,10 @@ function PlaygroundContent() {
                             <SolarCompassBigBold color={theme.icon} />
                             <TopbarLeftTexts>
                                 <TopbarLeftTextsTitle>
-                                    WindUI Web
+                                    WindUI Modded Web
                                 </TopbarLeftTextsTitle>
                                 <TopbarLeftTextsAuthor>
-                                    by .ftgs
+                                    by article-hub-studio
                                 </TopbarLeftTextsAuthor>
                             </TopbarLeftTexts>
                         </TopbarLeft>

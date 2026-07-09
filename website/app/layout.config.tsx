@@ -1,6 +1,8 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import BrandName from "./data/BrandName";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export interface NavLink {
     text: string;
     url: string;
@@ -11,7 +13,7 @@ export const baseOptions: BaseLayoutProps & { links: NavLink[] } = {
     nav: {
         title: (
             <div className="flex flex-row items-center gap-1">
-                <img src="/logo.svg" className="h-4" />
+                <img src={`${basePath}/logo.svg`} className="h-4" />
                 <span className="font-semibold text-[20px] max-sm:hidden">
                     {BrandName}
                 </span>

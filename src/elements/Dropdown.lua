@@ -19,22 +19,37 @@ local CurrentCamera = workspace.CurrentCamera
 local Element = {
 	UICorner = 10,
 	UIPadding = 12,
-	MenuCorner = 15,
-	MenuPadding = 5,
-	TabPadding = 10,
-	SearchBarHeight = 39,
-	TabIcon = 18,
+	MenuCorner = 14,
+	MenuPadding = 4,
+	TabPadding = 8,
+	SearchBarHeight = 34,
+	TabIcon = 16,
+	ItemHeight = 32,
 }
 
 function Element:New(Config)
+	local Values = Config.Values or {}
+	local SearchBarEnabled = Config.SearchBarEnabled
+	if SearchBarEnabled == nil then
+		if Config.Search ~= nil then
+			SearchBarEnabled = Config.Search
+		elseif Config.EnableSearch ~= nil then
+			SearchBarEnabled = Config.EnableSearch
+		else
+			SearchBarEnabled = #Values >= (Config.SearchThreshold or 7)
+		end
+	end
+
+	local Compact = Config.Compact ~= false
+
 	local Dropdown = {
 		__type = "Dropdown",
 		Title = Config.Title or "Dropdown",
 		Desc = Config.Desc or nil,
 		Locked = Config.Locked or false,
 		LockedTitle = Config.LockedTitle,
-		Values = Config.Values or {},
-		MenuWidth = Config.MenuWidth or 180,
+		Values = Values,
+		MenuWidth = Config.MenuWidth or (Compact and 164 or 180),
 		MenuMaxWidth = Config.MenuMaxWidth,
 		FullWidth = Config.FullWidth or Config.Full or Config.Mode == "Full" or Config.MenuMode == "Full",
 		Direction = Config.Direction or Config.OpenDirection or "Auto",
@@ -43,7 +58,12 @@ function Element:New(Config)
 		MobileSide = Config.MobileSide or Config.MobileAlign,
 		Value = Config.Value,
 		AllowNone = Config.AllowNone,
-		SearchBarEnabled = Config.SearchBarEnabled or false,
+		SearchBarEnabled = SearchBarEnabled == true,
+		SearchPlaceholder = Config.SearchPlaceholder or "Search...",
+		Compact = Compact,
+		Glass = Config.Glass ~= false,
+		GlassTransparency = Config.GlassTransparency or Config.MenuTransparency or 0.08,
+		ItemHeight = Config.ItemHeight or (Compact and Element.ItemHeight or 36),
 		Multi = Config.Multi,
 		Callback = Config.Callback or nil,
 
@@ -52,7 +72,7 @@ function Element:New(Config)
 		Opened = false,
 		Tabs = {},
 
-		Width = 150,
+		Width = Config.Width or (Compact and 136 or 150),
 	}
 
 	if Dropdown.Multi and not Dropdown.Value then
@@ -84,7 +104,7 @@ function Element:New(Config)
 		Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size =
 			UDim2.new(1, Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset - 18 - 12 - 12, 0, 0)
 
-		Dropdown.UIElements.Dropdown.Size = UDim2.new(0, Dropdown.Width, 0, 36)
+		Dropdown.UIElements.Dropdown.Size = UDim2.new(0, Dropdown.Width, 0, Compact and 32 or 36)
 		Dropdown.UIElements.Dropdown.Position = UDim2.new(1, 0, Config.Window.NewElements and 0 or 0.5, 0)
 		Dropdown.UIElements.Dropdown.AnchorPoint = Vector2.new(1, Config.Window.NewElements and 0 or 0.5)
 

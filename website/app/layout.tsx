@@ -1,15 +1,10 @@
 import { RootProvider } from "fumadocs-ui/provider";
-import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./global.css";
 import { Body } from "./body";
 import { GeistSans } from "geist/font/sans";
 import { SquircleNoScript } from "@squircle-js/react";
-
-const inter = Inter({
-    subsets: ["latin"],
-});
 
 export const viewport: Viewport = {
     width: "device-width",
@@ -21,10 +16,17 @@ export const metadata: Metadata = {
     metadataBase: new URL("https://article-hub-studio.github.io/WindUI-Skibidi"),
     title: {
         template: "%s",
-        default: "WindUI Skibidi Docs",
+        default: "WindUI Modded Docs",
     },
     description:
-        "Documentation for the WindUI Skibidi Roblox UI library fork.",
+        "Documentation for WindUI Modded, a Roblox Luau UI library fork with mobile-focused liquid glass elements.",
+    authors: [
+        {
+            name: "article-hub-studio",
+            url: "https://github.com/article-hub-studio",
+        },
+    ],
+    creator: "article-hub-studio",
 };
 
 export default function Layout({ children }: { children: ReactNode }) {

@@ -1,6 +1,8 @@
-# WindUI Skibidi Docs
+# WindUI Modded Docs
 
-WindUI Skibidi documentation website.
+WindUI Modded documentation website for the article-hub-studio/WindUI-Skibidi fork.
+
+Original WindUI credit is retained in the website content.
 
 This is a Next.js application generated with
 [Create Fumadocs](https://github.com/fuma-nama/fumadocs).

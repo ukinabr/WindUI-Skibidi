@@ -1,1 +1,1 @@
-export default "WindUI";
+export default "WindUI Modded";

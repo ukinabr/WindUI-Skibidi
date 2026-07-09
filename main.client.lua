@@ -1089,6 +1089,8 @@ do
 
 	DropdownTab:Dropdown({
 		Title = "Advanced Dropdown (example)",
+		Search = true,
+		GlassTransparency = 0.08,
 		Values = {
 			{
 				Title = "New file",
@@ -1132,6 +1134,7 @@ do
 
 	DropdownTab:Dropdown({
 		Title = "Multi Dropdown",
+		Search = true,
 		Values = {
 			"Привет",
 			"Hello",
@@ -1150,6 +1153,7 @@ do
 
 	DropdownTab:Dropdown({
 		Title = "No Multi Dropdown (default",
+		Search = true,
 		Values = {
 			"Привет",
 			"Hello",

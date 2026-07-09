@@ -18,7 +18,7 @@ local Motion = require("../../modules/Motion")
 local New = Creator.New
 local Tween = Creator.Tween
 
-local TabBackgroundTransparency = 0.67
+local TabBackgroundTransparency = 0.76
 
 function DropdownMenu.New(Config, Dropdown, Element, Type)
 	local DropdownModule = {}
@@ -33,7 +33,7 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		HorizontalAlignment = "Center",
 	})
 
-	Dropdown.UIElements.Menu = Creator.NewRoundFrame(Element.MenuCorner, "Squircle", {
+	Dropdown.UIElements.Menu = Creator.NewRoundFrame(Element.MenuCorner, Dropdown.Glass and "SquircleGlass" or "Squircle", {
 		ThemeTag = {
 			ImageColor3 = "DropdownBackground",
 		},
@@ -89,8 +89,8 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 	}, {
 		Dropdown.UIElements.Menu,
 		New("UISizeConstraint", {
-			MinSize = Vector2.new(170, 0),
-			MaxSize = Vector2.new(Dropdown.MenuMaxWidth or 520, 400),
+			MinSize = Vector2.new(Dropdown.Compact and 148 or 170, 0),
+			MaxSize = Vector2.new(Dropdown.MenuMaxWidth or 420, Dropdown.MenuMaxHeight or 340),
 		}),
 	})
 
@@ -159,9 +159,17 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 
 	local function GetCanvasWidth()
 		local button = GetDropdownButton()
-		local PaddingWidth = 6 + 6 + 5 + 5 + 18 + 6 + 6
-		local Width = Dropdown.FullWidth and math.max(button.AbsoluteSize.X, Dropdown.MenuWidth) or Dropdown.MenuWidth
-		return math.floor(Width + PaddingWidth + 0.5)
+		local Viewport = GetViewportSize()
+		local Padding = math.max(Element.MenuPadding * 2, 8)
+		local MaxWidth = math.max(
+			120,
+			math.min(Dropdown.MenuMaxWidth or (IsMobileViewport() and 320 or 420), Viewport.X - (Padding * 2))
+		)
+		local MinWidth = math.min(Dropdown.Compact and 148 or 170, MaxWidth)
+		local TriggerWidth = button.AbsoluteSize.X > 0 and button.AbsoluteSize.X or Dropdown.MenuWidth
+		local Width = Dropdown.FullWidth and math.max(TriggerWidth, Dropdown.MenuWidth) or Dropdown.MenuWidth
+
+		return math.floor(math.clamp(Width, MinWidth, MaxWidth) + 0.5)
 	end
 
 	local function ApplyCanvasWidth()
@@ -177,9 +185,14 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 	local function RecalculateListSize()
 		ApplyCanvasWidth()
 
-		local MaxHeight = GetViewportSize().Y - (Element.MenuPadding * 2)
+		local Viewport = GetViewportSize()
+		local MinHeight = Dropdown.SearchBarEnabled and (Element.SearchBarHeight + 44) or 44
+		local MaxHeight = math.max(
+			MinHeight,
+			math.min(Dropdown.MenuMaxHeight or (IsMobileViewport() and 280 or 340), Viewport.Y - (Element.MenuPadding * 4))
+		)
 
-		local ContentY = Dropdown.UIElements.UIListLayout.AbsoluteContentSize.Y / Config.UIScale
+		local ContentY = Dropdown.UIElements.UIListLayout.AbsoluteContentSize.Y / (Config.UIScale or Creator.UIScale or 1)
 		local SearchBarOffset = Dropdown.SearchBarEnabled and (Element.SearchBarHeight + (Element.MenuPadding * 3))
 			or (Element.MenuPadding * 2)
 		local TotalY = ContentY + SearchBarOffset
@@ -297,6 +310,47 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 	end
 
 	local SearchLabel
+	local SearchQuery = ""
+
+	local function GetSearchText(Tab)
+		local parts = {
+			Tab.Name,
+			Tab.Desc,
+		}
+
+		if typeof(Tab.Original) == "table" then
+			table.insert(parts, Tab.Original.Value)
+			table.insert(parts, Tab.Original.Id)
+			table.insert(parts, Tab.Original.Key)
+		end
+
+		local normalized = {}
+		for _, part in next, parts do
+			if part ~= nil then
+				table.insert(normalized, tostring(part))
+			end
+		end
+
+		return string.lower(table.concat(normalized, " "))
+	end
+
+	local function ApplySearchFilter(Query)
+		SearchQuery = string.lower(tostring(Query or ""))
+
+		for _, tab in next, Dropdown.Tabs do
+			if tab.UIElements and tab.UIElements.TabItem then
+				tab.UIElements.TabItem.Visible = SearchQuery == ""
+					or string.find(GetSearchText(tab), SearchQuery, 1, true) ~= nil
+			end
+		end
+
+		RecalculateCanvasSize()
+		RecalculateListSize()
+
+		if Dropdown.UIElements.MenuCanvas.Visible then
+			UpdatePosition()
+		end
+	end
 
 	function DropdownModule:Display()
 		local Values = Dropdown.Values
@@ -429,25 +483,35 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 
 		if Dropdown.SearchBarEnabled then
 			if not SearchLabel then
-				SearchLabel = CreateInput("Search...", "search", Dropdown.UIElements.Menu, nil, function(val)
-					for _, tab in next, Dropdown.Tabs do
-						if string.find(string.lower(tab.Name), string.lower(val), 1, true) then
-							tab.UIElements.TabItem.Visible = true
-						else
-							tab.UIElements.TabItem.Visible = false
-						end
-						RecalculateListSize()
-						RecalculateCanvasSize()
-					end
-				end, true)
+				SearchLabel = CreateInput(
+					Dropdown.SearchPlaceholder,
+					"search",
+					Dropdown.UIElements.Menu,
+					nil,
+					function(Value)
+						ApplySearchFilter(Value)
+					end,
+					true,
+					Element.MenuCorner - Element.MenuPadding
+				)
+				SearchLabel.LayoutOrder = 0
 				SearchLabel.Size = UDim2.new(1, 0, 0, Element.SearchBarHeight)
 				SearchLabel.Position = UDim2.new(0, 0, 0, 0)
 				SearchLabel.Name = "SearchBar"
+
+				for _, Descendant in next, SearchLabel:GetDescendants() do
+					if Descendant:IsA("TextBox") then
+						Descendant.TextSize = 14
+						Descendant.PlaceholderText = Dropdown.SearchPlaceholder
+					elseif Descendant:IsA("ImageLabel") then
+						Descendant.Size = UDim2.new(0, 16, 0, 16)
+					end
+				end
 			end
 		end
 
 		for Index, Tab in next, Values do
-			if Tab.Type ~= "Divider" then
+			if typeof(Tab) ~= "table" or Tab.Type ~= "Divider" then
 				local TabMain = {
 					Name = typeof(Tab) == "table" and Tab.Title or Tab,
 					Desc = typeof(Tab) == "table" and Tab.Desc or nil,
@@ -470,8 +534,9 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 					Element.MenuCorner - Element.MenuPadding,
 					"Squircle",
 					{
-						Size = UDim2.new(1, 0, 0, 36),
+						Size = UDim2.new(1, 0, 0, Dropdown.ItemHeight),
 						AutomaticSize = TabMain.Desc and "Y",
+						LayoutOrder = typeof(Index) == "number" and Index or 0,
 						ImageTransparency = 1, -- 0
 						Parent = Dropdown.UIElements.Menu.Frame.ScrollingFrame,
 						--ImageColor3 = Color3.new(1, 1, 1),
@@ -536,11 +601,12 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 										TextColor3 = "Text",
 										BackgroundColor3 = "Text",
 									},
-									TextSize = 15,
+									TextSize = 14,
 									BackgroundTransparency = 1,
 									TextTransparency = Type == "Dropdown" and 0.4 or 0.05,
 									LayoutOrder = 999,
 									AutomaticSize = "Y",
+									TextTruncate = "AtEnd",
 									Size = UDim2.new(1, 0, 0, 0),
 								}),
 								New("TextLabel", {
@@ -551,7 +617,7 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 										TextColor3 = "Text",
 										BackgroundColor3 = "Text",
 									},
-									TextSize = 15,
+									TextSize = 13,
 									BackgroundTransparency = 1,
 									TextTransparency = Type == "Dropdown" and 0.6 or 0.35,
 									LayoutOrder = 999,
@@ -685,6 +751,9 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 							Dropdown.Value = TabMain.Original
 						end
 						Callback()
+						if not Dropdown.Multi then
+							DropdownModule:Close()
+						end
 					end)
 				elseif Type == "Menu" then
 					if not TabMain.Locked then
@@ -700,6 +769,7 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 							return
 						end
 						Callback(Tab.Callback or function() end)
+						DropdownModule:Close()
 					end)
 				end
 
@@ -720,6 +790,7 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 		-- end
 
 		ApplyCanvasWidth()
+		ApplySearchFilter(SearchQuery)
 		Callback()
 
 		Dropdown.Values = Values
@@ -760,7 +831,7 @@ function DropdownMenu.New(Config, Dropdown, Element, Type)
 			Dropdown.UIElements.Menu.Size = Horizontal and UDim2.new(0, 0, 1, 0) or UDim2.new(1, 0, 0, 0)
 			Motion.Play(Dropdown.UIElements.Menu, "DropdownOpen", {
 				Size = UDim2.new(1, 0, 1, 0),
-				ImageTransparency = 0,
+				ImageTransparency = Dropdown.Glass and Dropdown.GlassTransparency or 0,
 			}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, "OpenClose")
 
 			task.spawn(function()

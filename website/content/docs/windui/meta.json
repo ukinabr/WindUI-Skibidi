@@ -1,6 +1,6 @@
 {
-    "title": "WindUI",
-    "description": "WindUI Library Documentation",
+    "title": "WindUI Modded",
+    "description": "WindUI Modded Library Documentation",
     "root": true,
     "pages": [
         "---Introducing---",
@@ -20,6 +20,7 @@
         "tabsection",
         "tabbox",
         "---Elements---",
+        "elements-overview",
         "sections",
         "button",
         "toggle",
