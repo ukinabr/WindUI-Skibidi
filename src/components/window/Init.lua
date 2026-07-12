@@ -28,6 +28,40 @@ local ConfigManager = require("../../config/Init")
 local Notified = false
 
 return function(Config)
+	local UseDefaultPreset = Config.Default == true or Config.Preset == "Default" or Config.Preset == "Obsidian"
+	local function Pick(Value, Default)
+		if Value ~= nil then
+			return Value
+		end
+		return Default
+	end
+	local function PickAlias(Value, Alias, Default)
+		if Value ~= nil then
+			return Value
+		end
+		if Alias ~= nil then
+			return Alias
+		end
+		return Default
+	end
+
+	if UseDefaultPreset then
+		Config.NewElements = Pick(Config.NewElements, true)
+		Config.LiquidGlass = PickAlias(Config.LiquidGlass, Config.GlassLiquid, true)
+		Config.HideSearchBar = Pick(Config.HideSearchBar, false)
+		Config.LinkElementCorners = PickAlias(Config.LinkElementCorners, Config.ElementsLinkCorners, true)
+		Config.ElementGap = PickAlias(Config.ElementGap, Config.ElementsGap, 8)
+		Config.ElementTransparency = PickAlias(Config.ElementTransparency, Config.ElementsTransparency, 0.18)
+		Config.BackgroundOverlayTransparency = Pick(Config.BackgroundOverlayTransparency, 0.5)
+		Config.BackgroundColor = Pick(Config.BackgroundColor, Color3.fromHex("#101821"))
+		Config.Radius = Pick(Config.Radius, 20)
+		Config.SideBarWidth = Pick(Config.SideBarWidth, 210)
+		Config.Topbar = Config.Topbar or {
+			Height = 48,
+			ButtonsType = "Mac",
+		}
+	end
+
 	local Window = {
 		Title = Config.Title or "UI Library",
 		Author = Config.Author,
@@ -37,7 +71,7 @@ return function(Config)
 		IconRadius = Config.IconRadius or 0,
 		Folder = Config.Folder,
 		Resizable = Config.Resizable ~= false,
-		Background = Config.Background,
+		Background = Config.Background or Config.BackgroundImage,
 		BackgroundColor = Config.BackgroundColor,
 		BackgroundGradient = Config.BackgroundGradient,
 		BackgroundImageTransparency = Config.BackgroundImageTransparency or 0,
@@ -529,154 +563,226 @@ return function(Config)
 	local IsVideoBG = false
 	local BGImage = nil
 
-	local BGVideo = typeof(Window.Background) == "string" and string.match(Window.Background, "^video:(.+)") or nil
-
-	local BGHttpImage = typeof(Window.Background) == "string"
-			and not BGVideo
-			and string.match(Window.Background, "^https?://.+")
-		or nil
-
-	local BGRobloxImage = typeof(Window.Background) == "string"
-			and not BGVideo
-			and string.match(Window.Background, "^rbxassetid://%d+")
-		or nil
-
-	local function GetImageExtension(url)
-		if not url or typeof(url) ~= "string" then
-			return ".png"
+	local function GetTransparencyValue(Value, Default)
+		local Number = tonumber(Value)
+		if Number == nil then
+			return Default
 		end
-		local cleanUrl = url:match("^([^?#]+)") or url
-		local ext = cleanUrl:match("%.(%w+)$")
-		if ext then
-			ext = ext:lower()
-			if ext == "jpg" or ext == "jpeg" or ext == "png" or ext == "webp" then
-				return "." .. ext
-			end
-		end
-		return ".png"
+		return math.clamp(math.floor(Number * 100 + 0.5) / 100, 0, 1)
 	end
 
-	--print(GetImageExtension(BGImageUrl))
-
-	if typeof(Window.Background) == "string" and BGVideo then
-		IsVideoBG = true
-
-		if string.find(BGVideo, "http") then
-			local videoPath = (Window.Folder or "Temp") .. "/assets/." .. Creator.SanitizeFilename(BGVideo) .. ".webm"
-			if not isfile(videoPath) then
-				local success, result = pcall(function()
-					-- local response = Creator.Request({
-					-- 	Url = BGVideo,
-					-- 	Method = "GET",
-					-- 	Headers = { ["User-Agent"] = "Roblox/Exploit" },
-					-- })
-					local response = game.HttpGet and game:HttpGet(BGVideo)
-						or Creator.Request({
-							Url = BGVideo,
-							Method = "GET",
-							Headers = { ["User-Agent"] = "Roblox/Exploit" },
-						}).Body
-					--print(response)
-					writefile(videoPath, response)
-				end)
-				if not success then
-					warn("[ WindUI.Window.Background ] Failed to download video: " .. tostring(result))
-				end
-			end
-
-			local success, customAsset = pcall(function()
-				return getcustomasset(videoPath)
-			end)
-			if not success then
-				warn("[ WindUI.Window.Background ] Failed to load custom asset: " .. tostring(customAsset))
-			end
-			warn("[ WindUI.Window.Background ] VideoFrame may not work with custom video")
-			BGVideo = customAsset
+	local function ParseColorValue(Value)
+		if typeof(Value) == "Color3" then
+			return Value
 		end
-
-		BGImage = New("VideoFrame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			Video = BGVideo,
-			Looped = true,
-			Volume = 0,
-			ZIndex = -10,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, Window.UICorner),
-			}),
-		})
-		BGImage:Play()
-	elseif BGHttpImage then
-		local imagePath = (Window.Folder or "Temp")
-			.. "/assets/."
-			.. Creator.SanitizeFilename(BGHttpImage)
-			.. GetImageExtension(BGHttpImage)
-
-		if isfile and not isfile(imagePath) then
-			local success, result = pcall(function()
-				local response = game.HttpGet and game:HttpGet(BGHttpImage)
-					or Creator.Request({
-						Url = BGHttpImage,
-						Method = "GET",
-						Headers = { ["User-Agent"] = "Roblox/Exploit" },
-					}).Body
-
-				writefile(imagePath, response)
+		if typeof(Value) == "string" and string.sub(Value, 1, 1) == "#" then
+			local Success, Color = pcall(function()
+				return Color3.fromHex(Value)
 			end)
+			return Success and Color or nil
+		end
+		return nil
+	end
 
-			if not success then
-				warn("[ Window.Background ] Failed to download image: " .. tostring(result))
+	local function GetUrlExtension(Url, DefaultExtension)
+		if not Url or typeof(Url) ~= "string" then
+			return DefaultExtension or ".png"
+		end
+		local CleanUrl = Url:match("^([^?#]+)") or Url
+		local Extension = CleanUrl:match("%.(%w+)$")
+		if Extension then
+			Extension = Extension:lower()
+			if Extension == "jpg" or Extension == "jpeg" or Extension == "png" or Extension == "webp" or Extension == "webm" then
+				return "." .. Extension
 			end
 		end
+		return DefaultExtension or ".png"
+	end
 
-		local success, customAsset = pcall(function()
-			return getcustomasset(imagePath)
+	local function EnsureAssetFolder()
+		if RunService:IsStudio() or not makefolder or not isfolder then
+			return
+		end
+
+		local Folder = Window.Folder or "Temp"
+		if not isfolder(Folder) then
+			makefolder(Folder)
+		end
+		if not isfolder(Folder .. "/assets") then
+			makefolder(Folder .. "/assets")
+		end
+	end
+
+	local function ReadHttp(Url)
+		if game.HttpGet then
+			return game:HttpGet(Url)
+		end
+		if Creator.Request then
+			local Response = Creator.Request({
+				Url = Url,
+				Method = "GET",
+				Headers = { ["User-Agent"] = "Roblox/Exploit" },
+			})
+			return Response and Response.Body
+		end
+		return nil
+	end
+
+	local function GetCustomAsset(Path)
+		if typeof(getcustomasset) ~= "function" then
+			return Path
+		end
+
+		local Success, Asset = pcall(function()
+			return getcustomasset(Path)
 		end)
-
-		if not success then
-			warn("[ Window.Background ] Failed to load custom asset: " .. tostring(customAsset))
+		if Success then
+			return Asset
 		end
 
-		BGImage = New("ImageLabel", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			Image = customAsset,
-			ImageTransparency = 0,
-			ScaleType = Window.BackgroundScaleType,
-			ZIndex = -10,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, Window.UICorner),
-			}),
-		})
-	elseif BGRobloxImage then
-		BGImage = New("ImageLabel", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			Image = BGRobloxImage,
-			ImageTransparency = 0,
-			ScaleType = Window.BackgroundScaleType,
-			ZIndex = -10,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, Window.UICorner),
-			}),
-		})
-	elseif Window.Background then
-		BGImage = New("ImageLabel", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			Image = typeof(Window.Background) == "string" and Window.Background or "",
-			ImageTransparency = 1,
-			ScaleType = Window.BackgroundScaleType,
-			ZIndex = -10,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, Window.UICorner),
-			}),
-		})
+		warn("[ WindUI.Window.Background ] Failed to load custom asset: " .. tostring(Asset))
+		return Path
 	end
+
+	local function CacheHttpAsset(Url, Extension)
+		if not writefile then
+			return Url
+		end
+
+		EnsureAssetFolder()
+		local AssetPath = (Window.Folder or "Temp")
+			.. "/assets/."
+			.. Creator.SanitizeFilename(Url)
+			.. GetUrlExtension(Url, Extension)
+
+		if not isfile or not isfile(AssetPath) then
+			local Success, Result = pcall(function()
+				local Response = ReadHttp(Url)
+				if Response then
+					writefile(AssetPath, Response)
+				end
+			end)
+
+			if not Success then
+				warn("[ WindUI.Window.Background ] Failed to download asset: " .. tostring(Result))
+				return Url
+			end
+		end
+
+		return GetCustomAsset(AssetPath)
+	end
+
+	local function ResolveBackgroundAsset(Source, Kind)
+		if typeof(Source) ~= "string" then
+			return ""
+		end
+
+		local VideoSource = string.match(Source, "^video:(.+)")
+		if VideoSource then
+			Source = VideoSource
+			Kind = "Video"
+		end
+
+		local CustomPath = string.match(Source, "^customasset:(.+)")
+			or string.match(Source, "^getcustomasset:(.+)")
+			or string.match(Source, "^file:(.+)")
+		if CustomPath then
+			return GetCustomAsset(CustomPath)
+		end
+
+		if isfile and isfile(Source) then
+			return GetCustomAsset(Source)
+		end
+
+		if string.match(Source, "^https?://") then
+			return CacheHttpAsset(Source, Kind == "Video" and ".webm" or ".png")
+		end
+
+		return Source
+	end
+
+	local function GetBackgroundKind(Value)
+		if Value == nil or Value == false then
+			return nil, nil, {}
+		end
+
+		if typeof(Value) == "table" then
+			local Kind = Value.Type or Value.Kind or Value.Mode
+			if Value.Video or Kind == "Video" or Kind == "video" then
+				return "Video", Value.Video or Value.Url or Value.URL or Value.Source or Value.Asset or Value.Path, Value
+			end
+			if Value.Image or Value.Url or Value.URL or Value.Asset or Value.Path or Kind == "Image" or Kind == "image" then
+				return "Image", Value.Image or Value.Url or Value.URL or Value.Asset or Value.Path or Value.Source, Value
+			end
+			if Value.Color or Kind == "Color" or Kind == "color" then
+				return "Color", Value.Color or Value.Value, Value
+			end
+			return "Gradient", Value.Gradient or Value, Value
+		end
+
+		local Color = ParseColorValue(Value)
+		if Color then
+			return "Color", Color, {}
+		end
+
+		if typeof(Value) == "string" then
+			local Video = string.match(Value, "^video:(.+)")
+			local CleanUrl = Value:match("^([^?#]+)") or Value
+			if Video or string.match(CleanUrl:lower(), "%.webm$") then
+				return "Video", Video or Value, {}
+			end
+			return "Image", Value, {}
+		end
+
+		return nil, nil, {}
+	end
+
+	local function CreateDetachedMediaBackground(Kind, Source, Options)
+		if Kind == "Image" then
+			Window.BackgroundScaleType = Options.ScaleType or Window.BackgroundScaleType
+			Window.BackgroundImageTransparency = GetTransparencyValue(
+				Options.Transparency or Options.ImageTransparency,
+				Window.BackgroundImageTransparency
+			)
+			return New("ImageLabel", {
+				Name = "BackgroundImage",
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 1, 0),
+				Image = ResolveBackgroundAsset(Source, "Image"),
+				ImageTransparency = Window.BackgroundImageTransparency,
+				ScaleType = Window.BackgroundScaleType,
+				ZIndex = -10,
+			}, {
+				New("UICorner", {
+					CornerRadius = UDim.new(0, Window.UICorner),
+				}),
+			})
+		end
+
+		if Kind == "Video" then
+			local Video = New("VideoFrame", {
+				Name = "BackgroundVideo",
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 1, 0),
+				Video = ResolveBackgroundAsset(Source, "Video"),
+				Looped = Options.Looped ~= false,
+				Volume = math.clamp(tonumber(Options.Volume) or 0, 0, 1),
+				ZIndex = -10,
+			}, {
+				New("UICorner", {
+					CornerRadius = UDim.new(0, Window.UICorner),
+				}),
+			})
+			Video:Play()
+			return Video
+		end
+
+		return nil
+	end
+
+	local InitialBackgroundKind, InitialBackgroundSource, InitialBackgroundOptions = GetBackgroundKind(Window.Background)
+	IsVideoBG = InitialBackgroundKind == "Video"
+	BGImage = CreateDetachedMediaBackground(InitialBackgroundKind, InitialBackgroundSource, InitialBackgroundOptions)
 
 	local BottomDragFrame = Creator.NewRoundFrame(99, "Squircle", {
 		ImageTransparency = 0.8,
@@ -1130,16 +1236,7 @@ return function(Config)
 	)
 
 	local function ParseBackgroundColor(Value)
-		if typeof(Value) == "Color3" then
-			return Value
-		end
-		if typeof(Value) == "string" and string.sub(Value, 1, 1) == "#" then
-			local Success, Color = pcall(function()
-				return Color3.fromHex(Value)
-			end)
-			return Success and Color or nil
-		end
-		return nil
+		return ParseColorValue(Value)
 	end
 
 	local function ApplyBackgroundColor(Value)
@@ -1237,10 +1334,12 @@ return function(Config)
 
 	if Window.BackgroundColor then
 		ApplyBackgroundColor(Window.BackgroundColor)
+	elseif InitialBackgroundKind == "Color" then
+		ApplyBackgroundColor(InitialBackgroundSource)
 	end
 
 	local InitialGradient = Window.BackgroundGradient
-		or (not IsVideoBG and Window.Background and typeof(Window.Background) == "table" and Window.Background)
+		or (InitialBackgroundKind == "Gradient" and InitialBackgroundSource or nil)
 	if InitialGradient then
 		local InitialTransparency = Window.BackgroundGradient and Window.BackgroundOverlayTransparency
 			or (Window.Transparent and Config.WindUI.TransparencyValue or 0)
@@ -1346,11 +1445,7 @@ return function(Config)
 	end
 
 	local function GetBackgroundTransparency(Value, Default)
-		local Number = tonumber(Value)
-		if Number == nil then
-			return Default
-		end
-		return math.clamp(math.floor(Number * 100 + 0.5) / 100, 0, 1)
+		return GetTransparencyValue(Value, Default)
 	end
 
 	function Window:SetBackgroundImage(id, Options)
@@ -1359,11 +1454,11 @@ return function(Config)
 		Window.Background = id
 		Window.BackgroundScaleType = Options.ScaleType or Window.BackgroundScaleType
 		Window.BackgroundImageTransparency = GetBackgroundTransparency(
-			Options.Transparency,
+			Options.Transparency or Options.ImageTransparency,
 			Window.BackgroundImageTransparency
 		)
 		Image.ScaleType = Window.BackgroundScaleType
-		Image.Image = tostring(id or "")
+		Image.Image = ResolveBackgroundAsset(id, "Image")
 		Image.ImageTransparency = 1
 		Motion.Play(
 			Image,
@@ -1380,11 +1475,10 @@ return function(Config)
 		Options = typeof(Options) == "table" and Options or {}
 		local Video = CreateVideoBackground()
 		Window.Background = "video:" .. tostring(id or "")
-		Video.Video = tostring(id or "")
+		Video.Video = ResolveBackgroundAsset(id, "Video")
 		Video.Visible = true
-		if Options.Volume then
-			Video.Volume = math.clamp(tonumber(Options.Volume) or 0, 0, 1)
-		end
+		Video.Looped = Options.Looped ~= false
+		Video.Volume = math.clamp(tonumber(Options.Volume) or Video.Volume or 0, 0, 1)
 		Video:Play()
 		return Video
 	end
@@ -1426,17 +1520,41 @@ return function(Config)
 	end
 
 	function Window:SetBackground(Value, Options)
-		if typeof(Value) == "table" then
-			local Transparency = typeof(Options) == "table" and Options.Transparency or Options
-			return Window:SetBackgroundGradient(Value, Transparency)
+		if Value == nil or Value == false then
+			Window.Background = nil
+			if BGImage then
+				BGImage:Destroy()
+				BGImage = nil
+			end
+			return nil
 		end
-		if ParseBackgroundColor(Value) then
-			return Window:SetBackgroundColor(Value)
+
+		local Kind, Source, InlineOptions = GetBackgroundKind(Value)
+		local MergedOptions = {}
+		if typeof(InlineOptions) == "table" then
+			for Key, OptionValue in next, InlineOptions do
+				MergedOptions[Key] = OptionValue
+			end
 		end
-		if typeof(Value) == "string" and string.match(Value, "^video:(.+)") then
-			return Window:SetBackgroundVideo(string.match(Value, "^video:(.+)"), Options)
+		if typeof(Options) == "table" then
+			for Key, OptionValue in next, Options do
+				MergedOptions[Key] = OptionValue
+			end
+		elseif Options ~= nil then
+			MergedOptions.Transparency = Options
 		end
-		return Window:SetBackgroundImage(Value, Options)
+
+		if Kind == "Gradient" then
+			return Window:SetBackgroundGradient(Source, MergedOptions.Transparency or MergedOptions.OverlayTransparency)
+		elseif Kind == "Color" then
+			return Window:SetBackgroundColor(Source)
+		elseif Kind == "Video" then
+			return Window:SetBackgroundVideo(Source, MergedOptions)
+		elseif Kind == "Image" then
+			return Window:SetBackgroundImage(Source, MergedOptions)
+		end
+
+		return nil
 	end
 
 	function Window:SetBackgroundImageTransparency(v)

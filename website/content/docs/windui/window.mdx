@@ -33,6 +33,7 @@ local Window = WindUI:CreateWindow({
     Title = "My Super Hub", -- window title
     Icon = "door-open", -- lucide icon or "rbxassetid://" or URL. optional
     Author = "by article-hub-studio", -- window subtitle. optional
+    Default = true, -- opt-in modern liquid preset
     Folder = "MySuperHub", -- folder to save keys and images
     
     Size = UDim2.fromOffset(580, 460), -- window size
@@ -46,7 +47,11 @@ local Window = WindUI:CreateWindow({
     ScrollBarEnabled = false, -- scrollbars that are located to the right of the scroll frame
 
     BackgroundImageTransparency = 0.42, -- background image transparency
-    Background = "rbxassetid://1234", -- rbxassetid
+    Background = {
+        Image = "rbxassetid://1234",
+        Transparency = 0.42,
+        ScaleType = Enum.ScaleType.Crop,
+    },
     
     User = { -- user information located at the bottom left
         Enabled = true, -- can be toggled with Window.User:Enable() or Window.User:Disable()
@@ -137,6 +142,10 @@ local Window = WindUI:CreateWindow({
             type: 'string',
             description: 'Library theme name (e.g., "Dark", "Light"). Default is "Dark".',
         },
+        'Default': {
+            type: 'boolean',
+            description: 'Opt-in modern preset. Enables NewElements, LiquidGlass, linked corners, Mac topbar, visible search and tighter mobile-friendly spacing unless you override those fields.',
+        },
         'Resizable': {
             type: 'boolean',
             description: 'Allow users to resize the window by dragging. Default is true.',
@@ -166,7 +175,8 @@ local Window = WindUI:CreateWindow({
                     <ul>
                         <li><strong>rbxassetid://</strong> - Roblox asset ID</li>
                         <li><strong>URL</strong> - HTTPS image URL</li>
-                        <li><strong>video:</strong> - Video background (requires getCustomAsset)</li>
+                        <li><strong>.webm URL</strong> or <strong>video:</strong> - Video background (uses getcustomasset when available)</li>
+                        <li><strong>customasset:</strong>, <strong>getcustomasset:</strong> or <strong>file:</strong> - local cached media path</li>
                         <li><strong>Table</strong> - Gradient configuration from <code>WindUI:Gradient()</code></li>
                     </ul>
                 </>
@@ -302,6 +312,36 @@ local Window = WindUI:CreateWindow({
         },
     }}
 />
+
+## Background API
+
+`SetBackgroundImage` still works, but new code should use `SetBackground`.
+It accepts colors, gradients, images, custom assets and `.webm` videos.
+
+```luau
+Window:SetBackground("#101821")
+
+Window:SetBackground(WindUI:Gradient({
+    ["0"] = { Color = "#071018", Transparency = 0.05 },
+    ["100"] = { Color = "#12352F", Transparency = 0.45 },
+}, {
+    Rotation = 118,
+}), 0.48)
+
+Window:SetBackground({
+    Image = "https://example.com/panel.png",
+    Transparency = 0.35,
+    ScaleType = Enum.ScaleType.Crop,
+})
+
+Window:SetBackground({
+    Video = "https://example.com/background.webm",
+    Volume = 0,
+    Looped = true,
+})
+
+Window:SetBackground("customasset:WindUI/MyHub/assets/background.png")
+```
 
 ## Window Methods
 

@@ -29,6 +29,7 @@ return {
 		DiscordCard = require("./DiscordCard"),
 		TabBox = require("./TabBox"),
 		Path2D = require("./Path2D"),
+		Card = require("./Card"),
 		Section = require("./Section"),
 		Divider = require("./Divider"),
 		Space = require("./Space"),
@@ -37,7 +38,7 @@ return {
 		HStack = require("./HStack"),
 		VStack = require("./VStack"),
 		Viewport = require("./Viewport"),
-		--Video       = require("./Video"),
+		Video = require("./Video"),
 	},
 	Load = function(tbl, Container, Elements, Window, WindUI, OnElementCreateFunction, ElementsModule, UIScale, Tab)
 		for name, module in next, Elements do

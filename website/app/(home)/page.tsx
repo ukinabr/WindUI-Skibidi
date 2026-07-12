@@ -92,6 +92,7 @@ const elementGroups = [
             ["KeyValue", "/docs/windui/keyvalue"],
             ["ActionList", "/docs/windui/actionlist"],
             ["DiscordCard", "/docs/windui/discordcard"],
+            ["Card", "/docs/windui/card"],
         ],
     },
     {
@@ -104,6 +105,7 @@ const elementGroups = [
             ["Accordion", "/docs/windui/accordion"],
             ["Path2D", "/docs/windui/path2d"],
             ["Image", "/docs/windui/image"],
+            ["Video", "/docs/windui/video"],
             ["Viewport", "/docs/windui/viewport"],
             ["ProgressBar", "/docs/windui/progressbar"],
         ],
@@ -378,16 +380,16 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Link
-                        href="/docs/windui/themes"
+                        href="/docs/windui/custom-theme"
                         className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition duration-200 hover:border-cyan-300/28 hover:bg-cyan-300/8"
                     >
                         <Palette className="size-6 text-cyan-200" />
                         <h3 className="mt-5 text-xl font-semibold tracking-tight">
-                            Themes
+                            Custom themes
                         </h3>
                         <p className="mt-2 text-sm leading-6 text-white/56">
-                            Dark, light and custom gradient themes for the
-                            modded build.
+                            Build, export and upload theme JSON with GitHub as
+                            a simple database.
                         </p>
                     </Link>
                     <Link

@@ -1,0 +1,372 @@
+local Creator = require("../modules/Creator")
+local Motion = require("../modules/Motion")
+local New = Creator.New
+
+local Utils = require("./DisplayElementUtils")
+
+local Element = {}
+
+local function GetText(Value, Fallback)
+	if Value == nil then
+		return Fallback
+	end
+	return tostring(Value)
+end
+
+local function GetCardColor(Value, Fallback)
+	return Utils.GetColor(Value, Fallback)
+end
+
+function Element:New(Config)
+	local Card = {
+		__type = "Card",
+		Title = GetText(Config.Title, "Card"),
+		Desc = Config.Desc or Config.Content,
+		Icon = Config.Icon,
+		Image = Config.Image or Config.Background or Config.BackgroundImage,
+		Callback = Config.Callback,
+		Elements = {},
+		UIElements = {},
+		ElementFrame = nil,
+		LinkCorners = Config.LinkCorners == true,
+	}
+
+	local Radius = Config.Radius or Config.Window.ElementConfig.UICorner
+	local Accent = GetCardColor(Config.Color or Config.Accent, nil)
+	local Height = tonumber(Config.Height) or 0
+	local IsInteractive = typeof(Card.Callback) == "function"
+
+	Card.UIElements.Main = Creator.NewRoundFrame(Radius, "Squircle", {
+		Name = "Card",
+		Size = UDim2.new(1, 0, 0, Height),
+		AutomaticSize = "Y",
+		ImageTransparency = Config.Transparency or (Config.Window.LiquidGlass and 0.84 or 0.9),
+		ImageColor3 = Accent or nil,
+		Parent = Config.Parent,
+		ThemeTag = Accent and nil or {
+			ImageColor3 = "ElementBackground",
+		},
+		ClipsDescendants = true,
+	}, {}, IsInteractive)
+	Card.ElementFrame = Card.UIElements.Main
+
+	Card.UIElements.Content = New("Frame", {
+		Name = "Content",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		ZIndex = 2,
+		Parent = Card.UIElements.Main,
+	}, {
+		New("UIPadding", {
+			PaddingTop = UDim.new(0, Config.Padding or 14),
+			PaddingLeft = UDim.new(0, Config.Padding or 14),
+			PaddingRight = UDim.new(0, Config.Padding or 14),
+			PaddingBottom = UDim.new(0, Config.Padding or 14),
+		}),
+		New("UIListLayout", {
+			Padding = UDim.new(0, Config.Gap or 12),
+			FillDirection = "Vertical",
+			HorizontalAlignment = "Left",
+			SortOrder = "LayoutOrder",
+		}),
+	})
+
+	if Card.Image then
+		Card.UIElements.Image = Creator.Image(Card.Image, Card.Title .. "-card-image", 0, Config.Window.Folder, "Card", false, false)
+		Card.UIElements.Image.Size = UDim2.new(1, 0, 1, 0)
+		Card.UIElements.Image.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Card.UIElements.Image.AnchorPoint = Vector2.new(0.5, 0.5)
+		Card.UIElements.Image.Parent = Card.UIElements.Main
+		Card.UIElements.Image.ZIndex = Card.UIElements.Main.ZIndex - 1
+
+		local Target = Utils.GetImageTarget(Card.UIElements.Image)
+		if Target then
+			Target.ZIndex = 0
+			Target.ImageTransparency = Config.ImageTransparency or 0.32
+			Target.ScaleType = Config.ScaleType or Enum.ScaleType.Crop
+		end
+	end
+
+	local Header = New("Frame", {
+		Name = "Header",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		LayoutOrder = 1,
+		Parent = Card.UIElements.Content,
+	}, {
+		New("UIListLayout", {
+			Padding = UDim.new(0, 10),
+			FillDirection = "Horizontal",
+			VerticalAlignment = "Top",
+			HorizontalAlignment = "Left",
+		}),
+	})
+
+	if Card.Icon then
+		local Icon = Utils.CreateIcon(Creator, Card.Icon, Config.Window.Folder, "Card", true, "CardIcon")
+		if Icon then
+			Icon.Size = UDim2.new(0, 22, 0, 22)
+			Icon.Parent = Header
+			local IconTarget = Utils.GetImageTarget(Icon)
+			if IconTarget and Accent then
+				IconTarget.ImageColor3 = Accent
+				IconTarget.ImageTransparency = 0
+			end
+		end
+	end
+
+	local Texts = New("Frame", {
+		Name = "Texts",
+		Size = UDim2.new(1, Card.Icon and -32 or 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		Parent = Header,
+	}, {
+		New("UIListLayout", {
+			Padding = UDim.new(0, 3),
+			FillDirection = "Vertical",
+			HorizontalAlignment = "Left",
+		}),
+	})
+
+	Card.UIElements.Title = New("TextLabel", {
+		Name = "Title",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		Text = Card.Title,
+		TextSize = Config.TitleSize or 17,
+		TextTransparency = 0.02,
+		TextXAlignment = "Left",
+		TextWrapped = true,
+		FontFace = Font.new(Creator.Font, Enum.FontWeight.Bold),
+		Parent = Texts,
+		ThemeTag = {
+			TextColor3 = "Text",
+		},
+	})
+
+	Card.UIElements.Desc = New("TextLabel", {
+		Name = "Desc",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		Text = Card.Desc or "",
+		TextSize = Config.DescSize or 13,
+		TextTransparency = 0.34,
+		TextXAlignment = "Left",
+		TextWrapped = true,
+		Visible = Card.Desc ~= nil,
+		FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium),
+		Parent = Texts,
+		ThemeTag = {
+			TextColor3 = "Text",
+		},
+	})
+
+	Card.UIElements.Body = New("Frame", {
+		Name = "Body",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		LayoutOrder = 2,
+		Parent = Card.UIElements.Content,
+	}, {
+		New("UIListLayout", {
+			Padding = UDim.new(0, Config.BodyGap or (Config.Window.NewElements and 6 or 8)),
+			FillDirection = "Vertical",
+			HorizontalAlignment = "Left",
+			SortOrder = "LayoutOrder",
+		}),
+	})
+
+	local function EnsureActions()
+		if Card.UIElements.Actions then
+			return Card.UIElements.Actions
+		end
+
+		Card.UIElements.Actions = New("Frame", {
+			Name = "Actions",
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = "Y",
+			BackgroundTransparency = 1,
+			LayoutOrder = 3,
+			Parent = Card.UIElements.Content,
+		}, {
+			New("UIListLayout", {
+				Padding = UDim.new(0, 8),
+				FillDirection = "Vertical",
+				HorizontalAlignment = "Left",
+				SortOrder = "LayoutOrder",
+			}),
+		})
+
+		return Card.UIElements.Actions
+	end
+
+	local function CreateActionButton(ButtonConfig, SelectCallback)
+		ButtonConfig = ButtonConfig or {}
+		local ButtonAccent = GetCardColor(ButtonConfig.Color, Accent)
+		local Button = Creator.NewRoundFrame(ButtonConfig.Radius or 14, "Squircle", {
+			Name = ButtonConfig.Name or "CardButton",
+			Size = UDim2.new(1, 0, 0, ButtonConfig.Height or 44),
+			ImageColor3 = ButtonAccent or nil,
+			ImageTransparency = ButtonConfig.Transparency or (ButtonAccent and 0.18 or 0.9),
+			Parent = EnsureActions(),
+			ThemeTag = ButtonAccent and nil or {
+				ImageColor3 = "ElementBackground",
+			},
+		}, {
+			New("UIPadding", {
+				PaddingLeft = UDim.new(0, 12),
+				PaddingRight = UDim.new(0, 12),
+			}),
+			New("UIListLayout", {
+				Padding = UDim.new(0, 10),
+				FillDirection = "Horizontal",
+				VerticalAlignment = "Center",
+				HorizontalAlignment = "Left",
+			}),
+			Utils.CreateIcon(Creator, ButtonConfig.Icon or "arrow-right", Config.Window.Folder, "Card", not ButtonAccent, "CardButtonIcon"),
+			New("TextLabel", {
+				Name = "Title",
+				Size = UDim2.new(1, -34, 1, 0),
+				BackgroundTransparency = 1,
+				Text = GetText(ButtonConfig.Title or ButtonConfig.Name, "Open"),
+				TextSize = ButtonConfig.TextSize or 14,
+				TextTransparency = 0.04,
+				TextXAlignment = "Left",
+				TextTruncate = "AtEnd",
+				FontFace = Font.new(Creator.Font, Enum.FontWeight.Bold),
+				ThemeTag = {
+					TextColor3 = "Text",
+				},
+			}),
+		}, true)
+
+		local ButtonIcon = Button:FindFirstChildWhichIsA("Frame") or Button:FindFirstChildWhichIsA("ImageLabel")
+		local IconTarget = Utils.GetImageTarget(ButtonIcon)
+		if IconTarget and ButtonAccent then
+			IconTarget.ImageColor3 = ButtonAccent
+			IconTarget.ImageTransparency = 0
+		end
+
+		Motion.AttachPress(Button, Creator, {
+			Amount = 0.975,
+		})
+		Creator.AddSignal(Button.MouseButton1Click, function()
+			if SelectCallback then
+				SelectCallback()
+			end
+			if typeof(ButtonConfig.Callback) == "function" then
+				Creator.SafeCallback(ButtonConfig.Callback, Card)
+			end
+		end)
+
+		return Button
+	end
+
+	function Card:CardButton(ButtonConfig)
+		return CreateActionButton(ButtonConfig)
+	end
+
+	function Card:CardTab(TabConfig)
+		TabConfig = TabConfig or {}
+		local TargetTab = TabConfig.Tab
+
+		if typeof(TargetTab) ~= "table" and TabConfig.CreateTab ~= false and Config.Window and Config.Window.Tab then
+			TargetTab = Config.Window:Tab({
+				Title = TabConfig.TabTitle or TabConfig.Title or Card.Title,
+				Desc = TabConfig.TabDesc or TabConfig.Desc,
+				Icon = TabConfig.TabIcon or TabConfig.Icon or Card.Icon or "panels-top-left",
+				ShowTabTitle = TabConfig.ShowTabTitle,
+				Golden = TabConfig.Golden,
+				Premium = TabConfig.Premium,
+			})
+
+			if typeof(TabConfig.Build) == "function" then
+				Creator.SafeCallback(TabConfig.Build, TargetTab, Card)
+			end
+		end
+
+		local Button = CreateActionButton({
+			Title = TabConfig.Title or "Open Card Tab",
+			Icon = TabConfig.Icon or "panels-top-left",
+			Color = TabConfig.Color,
+			Callback = TabConfig.Callback,
+		}, function()
+			if TargetTab and TargetTab.Select then
+				TargetTab:Select()
+			end
+		end)
+
+		return {
+			Tab = TargetTab,
+			Button = Button,
+			Select = function()
+				if TargetTab and TargetTab.Select then
+					return TargetTab:Select()
+				end
+			end,
+		}
+	end
+
+	if IsInteractive then
+		Motion.AttachPress(Card.UIElements.Main, Creator, {
+			Amount = 0.985,
+		})
+		Creator.AddSignal(Card.UIElements.Main.MouseButton1Click, function()
+			Creator.SafeCallback(Card.Callback, Card)
+		end)
+	end
+
+	local ElementsModule = Config.ElementsModule
+	ElementsModule.Load(
+		Card,
+		Card.UIElements.Body,
+		ElementsModule.Elements,
+		Config.Window,
+		Config.WindUI,
+		nil,
+		ElementsModule,
+		Config.UIScale,
+		Config.Tab
+	)
+
+	function Card:SetTitle(Title)
+		Card.Title = tostring(Title or "")
+		Card.UIElements.Title.Text = Card.Title
+	end
+
+	function Card:SetDesc(Desc)
+		Card.Desc = Desc
+		Card.UIElements.Desc.Text = tostring(Desc or "")
+		Card.UIElements.Desc.Visible = Desc ~= nil
+	end
+
+	function Card:Highlight()
+		Motion.Play(Card.UIElements.Main, "Highlight", { ImageTransparency = 0.78 }, nil, nil, "CardHighlight")
+		task.delay(Motion.GetDuration("Highlight"), function()
+			if Card.UIElements.Main.Parent then
+				Motion.Play(
+					Card.UIElements.Main,
+					"Highlight",
+					{ ImageTransparency = Config.Transparency or (Config.Window.LiquidGlass and 0.84 or 0.9) },
+					nil,
+					nil,
+					"CardHighlight"
+				)
+			end
+		end)
+	end
+
+	function Card:Destroy()
+		Card.UIElements.Main:Destroy()
+	end
+
+	return Card.__type, Card
+end
+
+return Element

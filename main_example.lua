@@ -6,6 +6,7 @@ local Window = WindUI:CreateWindow({
 	Title = ".ftgs hub | WindUI Full Example",
 	Folder = "WindUIFullExample",
 	Icon = "sparkles",
+	Default = true,
 	NewElements = true,
 	ElementTransparency = 0.18,
 	ElementGap = 8,
@@ -130,6 +131,56 @@ OverviewTab:KeyValue({
 	},
 })
 
+local FeatureCard = OverviewTab:Card({
+	Title = "Card Navigation",
+	Desc = "Cards can contain regular elements, HStack/VStack layouts, CardButton actions and CardTab navigation.",
+	Icon = "panels-top-left",
+	Color = "#0EA5E9",
+})
+
+local FeatureCardStats = FeatureCard:HStack({
+	MinChildWidth = 150,
+})
+FeatureCardStats:Badge({
+	Title = "Default Preset",
+	Variant = "Info",
+})
+FeatureCardStats:Badge({
+	Title = "CardTab",
+	Variant = "Success",
+})
+
+FeatureCard:CardButton({
+	Title = "Notify From Card",
+	Icon = "bell",
+	Callback = function()
+		WindUI:Notify({
+			Title = "CardButton",
+			Content = "Card action callback fired.",
+			Icon = "check",
+		})
+	end,
+})
+
+FeatureCard:CardTab({
+	Title = "Open Card Tab",
+	Icon = "arrow-right",
+	TabTitle = "Card Detail",
+	TabIcon = "panels-top-left",
+	Build = function(Tab)
+		Tab:Callout({
+			Title = "CardTab Page",
+			Desc = "This tab was created from a card action.",
+			Variant = "Success",
+		})
+		Tab:Card({
+			Title = "Dedicated Card Page",
+			Desc = "Use this pattern for premium cards, profile cards or feature dashboards.",
+			Icon = "sparkles",
+		})
+	end,
+})
+
 local SettingsTab = Window:Tab({
 	Title = "Settings",
 	Icon = "settings",
@@ -176,6 +227,19 @@ SettingsTab:ChipList({
 	Title = "Theme Tags",
 	Options = { "Glass", "Mobile", "Motion" },
 	Value = { "Glass", "Mobile" },
+})
+
+SettingsTab:Button({
+	Title = "Apply Webm Background API",
+	Desc = "Demonstrates SetBackground with media resolver.",
+	Icon = "image",
+	Callback = function()
+		Window:SetBackground({
+			Image = "rbxassetid://120997033468887",
+			Transparency = 0.42,
+			ScaleType = Enum.ScaleType.Crop,
+		})
+	end,
 })
 
 SettingsTab:Dropdown({

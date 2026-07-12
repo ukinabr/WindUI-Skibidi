@@ -47,7 +47,19 @@ console.log(h);
 ")
 
 START=$(date +%s%N)
-DARKLUA_OUT=$(darklua process "$INPUT" dist/temp.lua --config "$CONFIG" 2>&1)
+DARKLUA_BIN=$(command -v darklua 2>/dev/null || true)
+if [ -z "$DARKLUA_BIN" ] && [ -x "$HOME/.aftman/bin/darklua" ]; then
+    DARKLUA_BIN="$HOME/.aftman/bin/darklua"
+fi
+
+if [ -z "$DARKLUA_BIN" ]; then
+    echo -e "${E}[ × ]${R} DarkLua failed"
+    echo "darklua command not found. Run 'aftman install' or add ~/.aftman/bin to PATH."
+    rm -f dist/temp.lua
+    exit 1
+fi
+
+DARKLUA_OUT=$("$DARKLUA_BIN" process "$INPUT" dist/temp.lua --config "$CONFIG" 2>&1)
 DARKLUA_EXIT=$?
 
 if [ $DARKLUA_EXIT -ne 0 ]; then

@@ -1,0 +1,122 @@
+---
+title: Card
+description: Container cards, card buttons and card tabs for WindUI Modded
+---
+
+import TypeTable from '@/components/TypeTable';
+
+`Card` is a layout element that can hold normal WindUI elements inside it.
+It supports `HStack`, `VStack`, `Button`, `Toggle`, and the rest of the element API because it is a real nested container.
+
+## Basic Card
+
+```luau
+local Card = Tab:Card({
+    Title = "Card Navigation",
+    Desc = "Cards can contain elements and actions.",
+    Icon = "panels-top-left",
+    Color = "#0EA5E9",
+})
+
+Card:Button({
+    Title = "Normal element inside card",
+    Icon = "mouse-pointer-click",
+})
+
+local Row = Card:HStack({
+    MinChildWidth = 140,
+})
+
+Row:Badge({
+    Title = "State",
+    Value = "Ready",
+    Variant = "Success",
+})
+```
+
+## CardButton
+
+```luau
+Card:CardButton({
+    Title = "Run action",
+    Icon = "bell",
+    Callback = function()
+        print("card action")
+    end,
+})
+```
+
+## CardTab
+
+`CardTab` creates a card action that opens a dedicated tab.
+Pass `Build` to populate that tab immediately.
+
+```luau
+Card:CardTab({
+    Title = "Open details",
+    Icon = "arrow-right",
+    TabTitle = "Card Detail",
+    TabIcon = "panels-top-left",
+    Build = function(DetailTab)
+        DetailTab:Callout({
+            Title = "CardTab Page",
+            Desc = "This page was created from a card.",
+            Variant = "Success",
+        })
+    end,
+})
+```
+
+## Parameters
+
+<TypeTable 
+    data={[
+        { name: "Title", type: "string", description: "Card title." },
+        { name: "Desc", type: "string", description: "Optional card description." },
+        { name: "Icon", type: "string", description: "Lucide icon, Roblox asset or URL." },
+        { name: "Image", type: "string", description: "Optional card background image." },
+        { name: "Color", type: "Color3|string", description: "Accent color for card surfaces." },
+        { name: "Height", type: "number", description: "Optional minimum height." },
+        { name: "Padding", type: "number", description: "Inner padding. Default: 14." },
+        { name: "Gap", type: "number", description: "Vertical gap between header, body and actions." },
+        { name: "Callback", type: "function", description: "Optional callback when pressing the whole card." },
+    ]}
+/>
+
+## Methods
+
+<TypeTable 
+    type={{
+        ":CardButton": {
+            type: "function",
+            description: "Adds a compact action button to the card action area.",
+            args: {
+                config: { type: "table" },
+            },
+            returns: "Instance",
+        },
+        ":CardTab": {
+            type: "function",
+            description: "Adds an action that opens a dedicated WindUI tab.",
+            args: {
+                config: { type: "table" },
+            },
+            returns: "table",
+        },
+        ":SetTitle": {
+            type: "function",
+            description: "Updates the card title.",
+            args: {
+                title: { type: "string" },
+            },
+        },
+        ":SetDesc": {
+            type: "function",
+            description: "Updates or hides the card description.",
+            args: {
+                desc: { type: "string?" },
+            },
+        },
+    }}
+/>
+

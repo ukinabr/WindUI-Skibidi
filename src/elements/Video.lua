@@ -24,6 +24,7 @@ function Element:New(Config)
         Video = Config.Video or "",
         AspectRatio = Config.AspectRatio or "16:9",
         Radius = Config.Radius or Config.Window.ElementConfig.UICorner,
+        ElementFrame = nil,
     }
     
     local MainVideo
@@ -31,11 +32,30 @@ function Element:New(Config)
     if VideoModule.Video then
         local BGVideo
         if string.find(VideoModule.Video, "http") then
-            local videoPath = Config.Window.Folder .. "/assets/." .. Creator.SanitizeFilename(VideoModule.Video) .. ".webm"
-            if not isfile(videoPath) then
+            local folder = Config.Window.Folder or "Temp"
+            if makefolder and isfolder then
+                if not isfolder(folder) then
+                    makefolder(folder)
+                end
+                if not isfolder(folder .. "/assets") then
+                    makefolder(folder .. "/assets")
+                end
+            end
+            local videoPath = folder .. "/assets/." .. Creator.SanitizeFilename(VideoModule.Video) .. ".webm"
+            if not isfile or not isfile(videoPath) then
                 local success, result = pcall(function()
-                    local response = Creator.Request({Url = VideoModule.Video, Method="GET", Headers = { ["User-Agent"] = "Roblox/Exploit" }})
-                    writefile(videoPath, response.Body)
+                    local response = game.HttpGet and game:HttpGet(VideoModule.Video) or nil
+                    if not response and Creator.Request then
+                        local requestResponse = Creator.Request({
+                            Url = VideoModule.Video,
+                            Method = "GET",
+                            Headers = { ["User-Agent"] = "Roblox/Exploit" },
+                        })
+                        response = requestResponse and requestResponse.Body
+                    end
+                    if response and writefile then
+                        writefile(videoPath, response)
+                    end
                 end)
                 if not success then
                     warn("[ Window.Background ] Failed to download video: " .. tostring(result))
@@ -44,10 +64,10 @@ function Element:New(Config)
             end
             
             local success, customAsset = pcall(function()
-                return getcustomasset(videoPath)
+                return typeof(getcustomasset) == "function" and getcustomasset(videoPath) or videoPath
             end)
             if not success then
-                warn("[ Window.Background ] Failed to load custom asset: " .. tostring(customAsset))
+                warn("[ WindUI.Video ] Failed to load custom asset: " .. tostring(customAsset))
             end
             BGVideo = customAsset
         else
@@ -66,6 +86,7 @@ function Element:New(Config)
                 CornerRadius = UDim.new(0,VideoModule.Radius)
             }),
         })
+        VideoModule.ElementFrame = MainVideo
         MainVideo:Play()
         
         
