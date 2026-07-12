@@ -133,9 +133,24 @@ OverviewTab:KeyValue({
 
 local FeatureCard = OverviewTab:Card({
 	Title = "Card Navigation",
-	Desc = "Cards can contain regular elements, HStack/VStack layouts, CardButton actions and CardTab navigation.",
+	Desc = "Tap the card itself to open a dedicated page. Nested content remains optional.",
 	Icon = "panels-top-left",
 	Color = "#0EA5E9",
+	OpenTab = true,
+	TabTitle = "Card Detail",
+	TabIcon = "panels-top-left",
+	Build = function(Tab)
+		Tab:Callout({
+			Title = "Card Page",
+			Desc = "This page was opened by pressing the card, like a visual tab.",
+			Variant = "Success",
+		})
+		Tab:Card({
+			Title = "Dedicated Card Page",
+			Desc = "Use this pattern for premium cards, profile cards or feature dashboards.",
+			Icon = "sparkles",
+		})
+	end,
 })
 
 local FeatureCardStats = FeatureCard:HStack({
@@ -158,25 +173,6 @@ FeatureCard:CardButton({
 			Title = "CardButton",
 			Content = "Card action callback fired.",
 			Icon = "check",
-		})
-	end,
-})
-
-FeatureCard:CardTab({
-	Title = "Open Card Tab",
-	Icon = "arrow-right",
-	TabTitle = "Card Detail",
-	TabIcon = "panels-top-left",
-	Build = function(Tab)
-		Tab:Callout({
-			Title = "CardTab Page",
-			Desc = "This tab was created from a card action.",
-			Variant = "Success",
-		})
-		Tab:Card({
-			Title = "Dedicated Card Page",
-			Desc = "Use this pattern for premium cards, profile cards or feature dashboards.",
-			Icon = "sparkles",
 		})
 	end,
 })
@@ -366,6 +362,21 @@ LinkedTab:Toggle({
 	Title = "Middle Toggle",
 	Desc = "Middle element stays square while linked.",
 	Value = true,
+})
+
+LinkedTab:Card({
+	Title = "Linked Card Page",
+	Desc = "This card sits inside the linked stack and opens its own page.",
+	Icon = "panels-top-left",
+	OpenTab = true,
+	TabTitle = "Linked Card",
+	Build = function(Tab)
+		Tab:Callout({
+			Title = "Linked Card Page",
+			Desc = "Card corners follow the linked stack, while this page behaves like a normal tab.",
+			Variant = "Info",
+		})
+	end,
 })
 
 LinkedTab:Slider({

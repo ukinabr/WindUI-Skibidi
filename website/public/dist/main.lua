@@ -4,7 +4,7 @@
     | |/ |/ / / _ \/ _  / /_/ // /
     |__/|__/_/_//_/\_,_/\____/___/
 
-    v1.6.65  |  2026-07-12  |  Roblox UI Library for scripts
+    v1.6.65  |  2026-07-13  |  Roblox UI Library for scripts
 
     To view the source code, see the `src/` folder on the official GitHub repository.
 
@@ -19315,6 +19315,7 @@ Desc=an.Desc or an.Content,
 Icon=an.Icon,
 Image=an.Image or an.Background or an.BackgroundImage,
 Callback=an.Callback,
+OpenTab=an.OpenTab==true or an.CardTab==true or typeof(an.Build)=="function",
 Elements={},
 UIElements={},
 ElementFrame=nil,
@@ -19324,21 +19325,40 @@ LinkCorners=an.LinkCorners==true,
 local ap=an.Radius or an.Window.ElementConfig.UICorner
 local aq=GetCardColor(an.Color or an.Accent,nil)
 local ar=tonumber(an.Height)or 0
-local as=typeof(ao.Callback)=="function"
+local as=typeof(ao.Callback)=="function"or ao.OpenTab
+local at
+local au
+local av
 
-ao.UIElements.Main=aa.NewRoundFrame(ap,"Squircle",{
+ao.UIElements.Main,at=aa.NewRoundFrame(ap,"Squircle",{
 Name="Card",
 Size=UDim2.new(1,0,0,ar),
 AutomaticSize="Y",
-ImageTransparency=an.Transparency or(an.Window.LiquidGlass and 0.84 or 0.9),
-ImageColor3=aq or nil,
+ImageTransparency=1,
 Parent=an.Parent,
-ThemeTag=aq and nil or{
-ImageColor3="ElementBackground",
-},
 ClipsDescendants=true,
 },{},as)
 ao.ElementFrame=ao.UIElements.Main
+
+ao.UIElements.Background=ai("Frame",{
+Name="Background",
+Size=UDim2.new(1,0,1,0),
+BackgroundTransparency=aa.ClampTransparency(
+an.Transparency,
+an.Window.LiquidGlass and 0.84 or 0.9
+),
+BackgroundColor3=aq or nil,
+ZIndex=0,
+Parent=ao.UIElements.Main,
+ThemeTag=aq and nil or{
+BackgroundColor3="ElementBackground",
+},
+},{
+ai("UICorner",{
+CornerRadius=UDim.new(0,ap),
+}),
+})
+au=ao.UIElements.Background.UICorner
 
 ao.UIElements.Content=ai("Frame",{
 Name="Content",
@@ -19368,17 +19388,21 @@ ao.UIElements.Image.Size=UDim2.new(1,0,1,0)
 ao.UIElements.Image.Position=UDim2.new(0.5,0,0.5,0)
 ao.UIElements.Image.AnchorPoint=Vector2.new(0.5,0.5)
 ao.UIElements.Image.Parent=ao.UIElements.Main
-ao.UIElements.Image.ZIndex=ao.UIElements.Main.ZIndex-1
+ao.UIElements.Image.ZIndex=0
 
-local at=ak.GetImageTarget(ao.UIElements.Image)
-if at then
-at.ZIndex=0
-at.ImageTransparency=an.ImageTransparency or 0.32
-at.ScaleType=an.ScaleType or Enum.ScaleType.Crop
+local aw=ak.GetImageTarget(ao.UIElements.Image)
+if aw then
+aw.ZIndex=0
+aw.ImageTransparency=an.ImageTransparency or 0.32
+aw.ScaleType=an.ScaleType or Enum.ScaleType.Crop
+av=ai("UICorner",{
+CornerRadius=UDim.new(0,ap),
+Parent=aw,
+})
 end
 end
 
-local at=ai("Frame",{
+local aw=ai("Frame",{
 Name="Header",
 Size=UDim2.new(1,0,0,0),
 AutomaticSize="Y",
@@ -19395,24 +19419,24 @@ HorizontalAlignment="Left",
 })
 
 if ao.Icon then
-local au=ak.CreateIcon(aa,ao.Icon,an.Window.Folder,"Card",true,"CardIcon")
-if au then
-au.Size=UDim2.new(0,22,0,22)
-au.Parent=at
-local av=ak.GetImageTarget(au)
-if av and aq then
-av.ImageColor3=aq
-av.ImageTransparency=0
+local ax=ak.CreateIcon(aa,ao.Icon,an.Window.Folder,"Card",true,"CardIcon")
+if ax then
+ax.Size=UDim2.new(0,22,0,22)
+ax.Parent=aw
+local ay=ak.GetImageTarget(ax)
+if ay and aq then
+ay.ImageColor3=aq
+ay.ImageTransparency=0
 end
 end
 end
 
-local au=ai("Frame",{
+local ax=ai("Frame",{
 Name="Texts",
 Size=UDim2.new(1,ao.Icon and-32 or 0,0,0),
 AutomaticSize="Y",
 BackgroundTransparency=1,
-Parent=at,
+Parent=aw,
 },{
 ai("UIListLayout",{
 Padding=UDim.new(0,3),
@@ -19432,7 +19456,7 @@ TextTransparency=0.02,
 TextXAlignment="Left",
 TextWrapped=true,
 FontFace=Font.new(aa.Font,Enum.FontWeight.Bold),
-Parent=au,
+Parent=ax,
 ThemeTag={
 TextColor3="Text",
 },
@@ -19450,7 +19474,7 @@ TextXAlignment="Left",
 TextWrapped=true,
 Visible=ao.Desc~=nil,
 FontFace=Font.new(aa.Font,Enum.FontWeight.Medium),
-Parent=au,
+Parent=ax,
 ThemeTag={
 TextColor3="Text",
 },
@@ -19496,16 +19520,16 @@ SortOrder="LayoutOrder",
 return ao.UIElements.Actions
 end
 
-local function CreateActionButton(av,aw)
-av=av or{}
-local ax=GetCardColor(av.Color,aq)
-local ay=aa.NewRoundFrame(av.Radius or 14,"Squircle",{
-Name=av.Name or"CardButton",
-Size=UDim2.new(1,0,0,av.Height or 44),
-ImageColor3=ax or nil,
-ImageTransparency=av.Transparency or(ax and 0.18 or 0.9),
+local function CreateActionButton(ay,az)
+ay=ay or{}
+local aA=GetCardColor(ay.Color,aq)
+local aB=aa.NewRoundFrame(ay.Radius or 14,"Squircle",{
+Name=ay.Name or"CardButton",
+Size=UDim2.new(1,0,0,ay.Height or 44),
+ImageColor3=aA or nil,
+ImageTransparency=ay.Transparency or(aA and 0.18 or 0.9),
 Parent=EnsureActions(),
-ThemeTag=ax and nil or{
+ThemeTag=aA and nil or{
 ImageColor3="ElementBackground",
 },
 },{
@@ -19519,13 +19543,13 @@ FillDirection="Horizontal",
 VerticalAlignment="Center",
 HorizontalAlignment="Left",
 }),
-ak.CreateIcon(aa,av.Icon or"arrow-right",an.Window.Folder,"Card",not ax,"CardButtonIcon"),
+ak.CreateIcon(aa,ay.Icon or"arrow-right",an.Window.Folder,"Card",not aA,"CardButtonIcon"),
 ai("TextLabel",{
 Name="Title",
 Size=UDim2.new(1,-34,1,0),
 BackgroundTransparency=1,
-Text=GetText(av.Title or av.Name,"Open"),
-TextSize=av.TextSize or 14,
+Text=GetText(ay.Title or ay.Name,"Open"),
+TextSize=ay.TextSize or 14,
 TextTransparency=0.04,
 TextXAlignment="Left",
 TextTruncate="AtEnd",
@@ -19536,70 +19560,130 @@ TextColor3="Text",
 }),
 },true)
 
-local az=ay:FindFirstChildWhichIsA"Frame"or ay:FindFirstChildWhichIsA"ImageLabel"
-local aA=ak.GetImageTarget(az)
-if aA and ax then
-aA.ImageColor3=ax
-aA.ImageTransparency=0
+local b=aB:FindFirstChildWhichIsA"Frame"or aB:FindFirstChildWhichIsA"ImageLabel"
+local d=ak.GetImageTarget(b)
+if d and aA then
+d.ImageColor3=aA
+d.ImageTransparency=0
 end
 
-af.AttachPress(ay,aa,{
+af.AttachPress(aB,aa,{
 Amount=0.975,
 })
-aa.AddSignal(ay.MouseButton1Click,function()
-if aw then
-aw()
+aa.AddSignal(aB.MouseButton1Click,function()
+if az then
+az()
 end
-if typeof(av.Callback)=="function"then
-aa.SafeCallback(av.Callback,ao)
+if typeof(ay.Callback)=="function"then
+aa.SafeCallback(ay.Callback,ao)
 end
 end)
 
-return ay
+return aB
 end
 
-function ao.CardButton(av,aw)
-return CreateActionButton(aw)
-end
+local ay
+local function CreateCardTab(az)
+az=az or{}
+local aA=az.Tab
 
-function ao.CardTab(av,aw)
-aw=aw or{}
-local ax=aw.Tab
-
-if typeof(ax)~="table"and aw.CreateTab~=false and an.Window and an.Window.Tab then
-ax=an.Window:Tab{
-Title=aw.TabTitle or aw.Title or ao.Title,
-Desc=aw.TabDesc or aw.Desc,
-Icon=aw.TabIcon or aw.Icon or ao.Icon or"panels-top-left",
-ShowTabTitle=aw.ShowTabTitle,
-Golden=aw.Golden,
-Premium=aw.Premium,
+if typeof(aA)~="table"and az.CreateTab~=false and an.Window and an.Window.Tab then
+aA=an.Window:Tab{
+Title=az.TabTitle or az.Title or ao.Title,
+Desc=az.TabDesc or az.Desc,
+Icon=az.TabIcon or az.Icon or ao.Icon or"panels-top-left",
+ShowTabTitle=az.ShowTabTitle,
+Golden=az.Golden,
+Premium=az.Premium,
+LinkCorners=az.LinkCorners,
+Gap=az.Gap,
 }
 
-if typeof(aw.Build)=="function"then
-aa.SafeCallback(aw.Build,ax,ao)
+if typeof(az.Build)=="function"then
+aa.SafeCallback(az.Build,aA,ao)
 end
 end
-
-local ay=CreateActionButton({
-Title=aw.Title or"Open Card Tab",
-Icon=aw.Icon or"panels-top-left",
-Color=aw.Color,
-Callback=aw.Callback,
-},function()
-if ax and ax.Select then
-ax:Select()
-end
-end)
 
 return{
-Tab=ax,
-Button=ay,
+Tab=aA,
 Select=function()
-if ax and ax.Select then
-return ax:Select()
+if aA and aA.Select then
+return aA:Select()
 end
 end,
+}
+end
+
+function ao.CardButton(az,aA)
+return CreateActionButton(aA)
+end
+
+function ao.CardTab(az,aA)
+aA=aA or{}
+local aB=CreateCardTab(aA)
+
+local b=CreateActionButton({
+Title=aA.Title or"Open Card Tab",
+Icon=aA.Icon or"panels-top-left",
+Color=aA.Color,
+Callback=aA.Callback,
+},function()
+aB.Select()
+end)
+
+aB.Button=b
+return aB
+end
+
+if ao.OpenTab then
+local az=typeof(an.CardTab)=="table"and an.CardTab or{}
+ay=CreateCardTab{
+Tab=an.TabTarget or an.Page or az.Tab,
+CreateTab=an.CreateTab~=false and az.CreateTab~=false,
+Title=an.TabTitle or an.PageTitle or az.Title or ao.Title,
+TabTitle=an.TabTitle or an.PageTitle or az.TabTitle or ao.Title,
+TabDesc=an.TabDesc or an.PageDesc or az.TabDesc or ao.Desc,
+Icon=an.TabIcon or an.PageIcon or az.Icon or ao.Icon,
+TabIcon=an.TabIcon or an.PageIcon or az.TabIcon or ao.Icon,
+ShowTabTitle=an.ShowTabTitle or az.ShowTabTitle,
+Golden=an.Golden or az.Golden,
+Premium=an.Premium or az.Premium,
+LinkCorners=an.PageLinkCorners or az.LinkCorners,
+Gap=an.PageGap or az.Gap,
+Build=an.Build or az.Build,
+}
+
+ao.Page=ay.Tab
+ao.PageController=ay
+end
+
+function ao.Open(az)
+if ay then
+return ay.Select()
+end
+if typeof(ao.Callback)=="function"then
+return aa.SafeCallback(ao.Callback,ao)
+end
+end
+
+function ao.GetPage(az)
+return ay and ay.Tab
+end
+
+function ao.SetPage(az,aA)
+ay={
+Tab=aA,
+Select=function()
+if aA and aA.Select then
+return aA:Select()
+end
+end,
+}
+ao.Page=aA
+ao.PageController=ay
+return{
+Tab=aA,
+Select=ay.Select,
 }
 end
 
@@ -19608,42 +19692,52 @@ af.AttachPress(ao.UIElements.Main,aa,{
 Amount=0.985,
 })
 aa.AddSignal(ao.UIElements.Main.MouseButton1Click,function()
+if ay then
+ay.Select()
+end
+if typeof(ao.Callback)=="function"then
 aa.SafeCallback(ao.Callback,ao)
+end
 end)
 end
 
-local av=an.ElementsModule
-av.Load(
+local az=an.ElementsModule
+az.Load(
 ao,
 ao.UIElements.Body,
-av.Elements,
+az.Elements,
 an.Window,
 an.WindUI,
 nil,
-av,
+az,
 an.UIScale,
 an.Tab
 )
 
-function ao.SetTitle(aw,ax)
-ao.Title=tostring(ax or"")
+function ao.SetTitle(aA,aB)
+ao.Title=tostring(aB or"")
 ao.UIElements.Title.Text=ao.Title
 end
 
-function ao.SetDesc(aw,ax)
-ao.Desc=ax
-ao.UIElements.Desc.Text=tostring(ax or"")
-ao.UIElements.Desc.Visible=ax~=nil
+function ao.SetDesc(aA,aB)
+ao.Desc=aB
+ao.UIElements.Desc.Text=tostring(aB or"")
+ao.UIElements.Desc.Visible=aB~=nil
 end
 
-function ao.Highlight(aw)
-af.Play(ao.UIElements.Main,"Highlight",{ImageTransparency=0.78},nil,nil,"CardHighlight")
+function ao.Highlight(aA)
+af.Play(ao.UIElements.Background,"Highlight",{BackgroundTransparency=0.78},nil,nil,"CardHighlight")
 task.delay(af.GetDuration"Highlight",function()
 if ao.UIElements.Main.Parent then
 af.Play(
-ao.UIElements.Main,
+ao.UIElements.Background,
 "Highlight",
-{ImageTransparency=an.Transparency or(an.Window.LiquidGlass and 0.84 or 0.9)},
+{
+BackgroundTransparency=aa.ClampTransparency(
+an.Transparency,
+an.Window.LiquidGlass and 0.84 or 0.9
+),
+},
 nil,
 nil,
 "CardHighlight"
@@ -19652,7 +19746,45 @@ end
 end)
 end
 
-function ao.Destroy(aw)
+function ao.UpdateShape(aA)
+local aB=an.Window.ElementConfig.LinkCorners
+or ao.LinkCorners
+or(an.ParentTable and an.ParentTable.LinkCorners==true)
+
+local b={
+TopLeft=true,
+TopRight=true,
+BottomLeft=true,
+BottomRight=true,
+}
+local d="Squircle"
+
+if aB and aA and aA.Elements then
+local f=an.ParentConfig
+and an.ParentConfig.ParentTable
+and an.ParentConfig.ParentTable.__type
+or an.ParentType
+or(an.ParentTable and an.ParentTable.__type)
+d,b=aa:GetElementPosition(
+aA.Elements,
+ao.Index,
+f=="HStack"or f=="Group"
+)
+end
+
+if d and at then
+local f=(d=="Squircle-TL-BL"or d=="Squircle-TR-BR")and"Squircle"
+or d
+at:SetType(f)
+end
+
+aa.ApplyCornerRadii(au,UDim.new(0,ap),b)
+aa.ApplyCornerRadii(av,UDim.new(0,ap),b)
+end
+
+ao.UpdateShape(an.Tab or an.ParentTable)
+
+function ao.Destroy(aA)
 ao.UIElements.Main:Destroy()
 end
 

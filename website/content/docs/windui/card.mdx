@@ -1,23 +1,44 @@
 ---
 title: Card
-description: Container cards, card buttons and card tabs for WindUI Modded
+description: Card pages, card buttons and nested layouts for WindUI Modded
 ---
 
 import TypeTable from '@/components/TypeTable';
 
-`Card` is a layout element that can hold normal WindUI elements inside it.
-It supports `HStack`, `VStack`, `Button`, `Toggle`, and the rest of the element API because it is a real nested container.
+`Card` is a visual navigation element. The primary pattern is pressing the
+card itself to open a dedicated page, similar to selecting a tab.
 
-## Basic Card
+It can still hold normal WindUI elements when you need a compact dashboard
+inside the card. `HStack`, `VStack`, `Button`, `Toggle`, and the rest of the
+element API remain available.
+
+## Page Card
 
 ```luau
 local Card = Tab:Card({
     Title = "Card Navigation",
-    Desc = "Cards can contain elements and actions.",
+    Desc = "Tap the card to open a dedicated page.",
     Icon = "panels-top-left",
     Color = "#0EA5E9",
+    OpenTab = true,
+    TabTitle = "Card Detail",
+    TabIcon = "panels-top-left",
+    Build = function(CardPage)
+        CardPage:Callout({
+            Title = "Card Page",
+            Desc = "This page was opened by pressing the card.",
+            Variant = "Success",
+        })
+    end,
 })
+```
 
+## Nested Content
+
+Nested content is optional. Use it when the card needs live state or compact
+controls before the user opens the full card page.
+
+```luau
 Card:Button({
     Title = "Normal element inside card",
     Icon = "mouse-pointer-click",
@@ -36,6 +57,9 @@ Row:Badge({
 
 ## CardButton
 
+`CardButton` adds a secondary action inside the card without changing the
+main press behaviour.
+
 ```luau
 Card:CardButton({
     Title = "Run action",
@@ -48,8 +72,8 @@ Card:CardButton({
 
 ## CardTab
 
-`CardTab` creates a card action that opens a dedicated tab.
-Pass `Build` to populate that tab immediately.
+`CardTab` is kept for compatibility and secondary actions. Prefer
+`OpenTab = true` on the card itself when the whole card should navigate.
 
 ```luau
 Card:CardTab({
@@ -79,6 +103,10 @@ Card:CardTab({
         { name: "Height", type: "number", description: "Optional minimum height." },
         { name: "Padding", type: "number", description: "Inner padding. Default: 14." },
         { name: "Gap", type: "number", description: "Vertical gap between header, body and actions." },
+        { name: "OpenTab", type: "boolean", description: "When true, pressing the card opens a dedicated tab/page." },
+        { name: "Build", type: "function", description: "Populates the card page when OpenTab is enabled." },
+        { name: "TabTitle", type: "string", description: "Title for the generated card page." },
+        { name: "TabIcon", type: "string", description: "Icon for the generated card page." },
         { name: "Callback", type: "function", description: "Optional callback when pressing the whole card." },
     ]}
 />
@@ -97,11 +125,27 @@ Card:CardTab({
         },
         ":CardTab": {
             type: "function",
-            description: "Adds an action that opens a dedicated WindUI tab.",
+            description: "Adds a secondary action that opens a dedicated WindUI tab.",
             args: {
                 config: { type: "table" },
             },
             returns: "table",
+        },
+        ":Open": {
+            type: "function",
+            description: "Opens the linked card page or runs the callback.",
+        },
+        ":GetPage": {
+            type: "function",
+            description: "Returns the generated or assigned page tab.",
+            returns: "table?",
+        },
+        ":SetPage": {
+            type: "function",
+            description: "Assigns an existing tab as the card page.",
+            args: {
+                tab: { type: "table" },
+            },
         },
         ":SetTitle": {
             type: "function",
@@ -119,4 +163,3 @@ Card:CardTab({
         },
     }}
 />
-
