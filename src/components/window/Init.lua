@@ -1265,9 +1265,22 @@ return function(Config)
 			return nil
 		end
 
+		local HasGradientProperty = Gradient.Color ~= nil
+			or Gradient.Transparency ~= nil
+			or Gradient.Rotation ~= nil
+			or Gradient.Offset ~= nil
+		if not HasGradientProperty then
+			return nil
+		end
+
 		local BackgroundGradient = New("UIGradient")
 		for key, value in next, Gradient do
-			BackgroundGradient[key] = value
+			if key == "Transparency" and typeof(value) == "number" then
+				continue
+			end
+			pcall(function()
+				BackgroundGradient[key] = value
+			end)
 		end
 
 		local GradientFrame = Creator.NewRoundFrame(Window.UICorner, "Squircle", {

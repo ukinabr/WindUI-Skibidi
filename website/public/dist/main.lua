@@ -24095,23 +24095,36 @@ if typeof(C)~="table"then
 return nil
 end
 
-local G=ap"UIGradient"
-for H,J in next,C do
-G[H]=J
+local G=C.Color~=nil
+or C.Transparency~=nil
+or C.Rotation~=nil
+or C.Offset~=nil
+if not G then
+return nil
 end
 
-local H=an.NewRoundFrame(ay.UICorner,"Squircle",{
+local H=ap"UIGradient"
+for J,L in next,C do
+if J=="Transparency"and typeof(L)=="number"then
+continue
+end
+pcall(function()
+H[J]=L
+end)
+end
+
+local J=an.NewRoundFrame(ay.UICorner,"Squircle",{
 Name="BackgroundGradient",
 Size=UDim2.new(1,0,1,0),
 Parent=ay.UIElements.Main.Background,
 ImageTransparency=F or ay.BackgroundOverlayTransparency,
 ZIndex=-9,
 },{
-G,
+H,
 })
 
-ay.UIElements.BackgroundGradient=H
-return H
+ay.UIElements.BackgroundGradient=J
+return J
 end
 
 local function ClearDetachedBackgroundMedia(C)
