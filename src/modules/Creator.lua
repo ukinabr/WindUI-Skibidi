@@ -221,6 +221,13 @@ function Creator.Gradient(stops, props)
 end
 
 function Creator.SetTheme(Theme)
+	if typeof(Theme) ~= "table" then
+		Theme = Creator.Theme or (Creator.Themes and Creator.Themes["Dark"])
+	end
+	if typeof(Theme) ~= "table" then
+		return nil
+	end
+
 	local PreviousTheme = Creator.Theme
 	Creator.Theme = Theme
 	Creator.UpdateTheme(nil, false)
@@ -228,6 +235,8 @@ function Creator.SetTheme(Theme)
 	for _, Callback in next, Creator.ThemeChangeCallbacks do
 		Creator.SafeCallback(Callback, Theme, PreviousTheme)
 	end
+
+	return Theme
 end
 
 function Creator.AddFontObject(Object)
@@ -244,6 +253,10 @@ end
 
 function Creator.GetThemeProperty(Property, Theme)
 	local function getValue(prop, themeTable)
+		if typeof(themeTable) ~= "table" then
+			return nil
+		end
+
 		local value = themeTable[prop]
 
 		if value == nil then
@@ -273,6 +286,8 @@ function Creator.GetThemeProperty(Property, Theme)
 		return value
 	end
 
+	Theme = if typeof(Theme) == "table" then Theme else Creator.Theme
+
 	local value = getValue(Property, Theme)
 	if value ~= nil then
 		if typeof(value) == "string" and string.sub(value, 1, 1) ~= "#" then
@@ -285,7 +300,7 @@ function Creator.GetThemeProperty(Property, Theme)
 		end
 	end
 
-	local fallbackProperty = Creator.ThemeFallbacks[Property]
+	local fallbackProperty = Creator.ThemeFallbacks and Creator.ThemeFallbacks[Property]
 	if fallbackProperty ~= nil then
 		if typeof(fallbackProperty) == "string" and string.sub(fallbackProperty, 1, 1) ~= "#" then
 			return Creator.GetThemeProperty(fallbackProperty, Theme)
@@ -294,10 +309,11 @@ function Creator.GetThemeProperty(Property, Theme)
 		end
 	end
 
-	value = getValue(Property, Creator.Themes["Dark"])
+	local darkTheme = Creator.Themes and Creator.Themes["Dark"]
+	value = getValue(Property, darkTheme)
 	if value ~= nil then
 		if typeof(value) == "string" and string.sub(value, 1, 1) ~= "#" then
-			local referencedValue = Creator.GetThemeProperty(value, Creator.Themes["Dark"])
+			local referencedValue = Creator.GetThemeProperty(value, darkTheme)
 			if referencedValue ~= nil then
 				return referencedValue
 			end
@@ -308,7 +324,7 @@ function Creator.GetThemeProperty(Property, Theme)
 
 	if fallbackProperty ~= nil then
 		if typeof(fallbackProperty) == "string" and string.sub(fallbackProperty, 1, 1) ~= "#" then
-			return Creator.GetThemeProperty(fallbackProperty, Creator.Themes["Dark"])
+			return Creator.GetThemeProperty(fallbackProperty, darkTheme)
 		else
 			return getValue(Property, { [Property] = fallbackProperty })
 		end

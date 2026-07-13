@@ -867,6 +867,13 @@ return A
 end
 
 function r.SetTheme(u)
+if typeof(u)~="table"then
+u=r.Theme or(r.Themes and r.Themes.Dark)
+end
+if typeof(u)~="table"then
+return nil
+end
+
 local v=r.Theme
 r.Theme=u
 r.UpdateTheme(nil,false)
@@ -874,6 +881,8 @@ r.UpdateTheme(nil,false)
 for x,z in next,r.ThemeChangeCallbacks do
 r.SafeCallback(z,u,v)
 end
+
+return u
 end
 
 function r.AddFontObject(u)
@@ -890,6 +899,10 @@ end
 
 function r.GetThemeProperty(u,v)
 local function getValue(x,z)
+if typeof(z)~="table"then
+return nil
+end
+
 local A=z[x]
 
 if A==nil then
@@ -919,6 +932,8 @@ end
 return A
 end
 
+v=if typeof(v)=="table"then v else r.Theme
+
 local x=getValue(u,v)
 if x~=nil then
 if typeof(x)=="string"and string.sub(x,1,1)~="#"then
@@ -931,7 +946,7 @@ return x
 end
 end
 
-local z=r.ThemeFallbacks[u]
+local z=r.ThemeFallbacks and r.ThemeFallbacks[u]
 if z~=nil then
 if typeof(z)=="string"and string.sub(z,1,1)~="#"then
 return r.GetThemeProperty(z,v)
@@ -940,12 +955,13 @@ return getValue(u,{[u]=z})
 end
 end
 
-x=getValue(u,r.Themes.Dark)
+local A=r.Themes and r.Themes.Dark
+x=getValue(u,A)
 if x~=nil then
 if typeof(x)=="string"and string.sub(x,1,1)~="#"then
-local A=r.GetThemeProperty(x,r.Themes.Dark)
-if A~=nil then
-return A
+local B=r.GetThemeProperty(x,A)
+if B~=nil then
+return B
 end
 else
 return x
@@ -954,7 +970,7 @@ end
 
 if z~=nil then
 if typeof(z)=="string"and string.sub(z,1,1)~="#"then
-return r.GetThemeProperty(z,r.Themes.Dark)
+return r.GetThemeProperty(z,A)
 else
 return getValue(u,{[u]=z})
 end
@@ -26378,32 +26394,39 @@ if not aB.KeySystem then
 OpenLoader("Preparing interface",0.16)
 end
 
-local h=aa.Themes[aB.Theme or"Dark"]
+local h=aB.Theme or"Dark"
+local i
+if typeof(h)=="table"then
+i=h
+elseif typeof(h)=="string"then
+i=aa.Themes[h]
+end
 
+i=i or aa.Theme or aa.Themes.Dark
+aa.Theme=i
+at.SetTheme(i)
 
-at.SetTheme(h)
-
-local i=gethwid or function()
+local l=gethwid or function()
 return ak.LocalPlayer.UserId
 end
 
-local l=i()
+local m=l()
 
-local function PickField(m,p)
-for r,u in next,p do
-if m[u]~=nil then
-return m[u]
+local function PickField(p,r)
+for u,v in next,r do
+if p[v]~=nil then
+return p[v]
 end
 end
 return nil
 end
 
-local function NormalizeServiceType(m)
-local p=string.lower(tostring(m or""))
-p=string.gsub(p,"%s+","")
-p=string.gsub(p,"[_%-%./]","")
+local function NormalizeServiceType(p)
+local r=string.lower(tostring(p or""))
+r=string.gsub(r,"%s+","")
+r=string.gsub(r,"[_%-%./]","")
 
-local r={
+local u={
 luarmor="luarmor",
 platoboost="platoboost",
 plato="platoboost",
@@ -26415,7 +26438,7 @@ junkiedev="junkiedevelopment",
 junkiedevelopment="junkiedevelopment",
 }
 
-return r[p]or p
+return u[r]or r
 end
 
 local function NormalizeKeySystemAPI()
@@ -26423,21 +26446,21 @@ if not aB.KeySystem or typeof(aB.KeySystem.API)~="table"then
 return
 end
 
-local m=aB.KeySystem.API
-local p=m
-if m.Type or m.type or m.Service or m.service then
-p={m}
+local p=aB.KeySystem.API
+local r=p
+if p.Type or p.type or p.Service or p.service then
+r={p}
 end
 
-local r={}
-for u,v in next,p do
-if typeof(v)=="table"then
-local x={}
-for z,A in next,v do
-x[z]=A
+local u={}
+for v,x in next,r do
+if typeof(x)=="table"then
+local z={}
+for A,B in next,x do
+z[A]=B
 end
 
-x.Type=NormalizeServiceType(PickField(v,{
+z.Type=NormalizeServiceType(PickField(x,{
 "Type",
 "type",
 "Service",
@@ -26446,7 +26469,7 @@ x.Type=NormalizeServiceType(PickField(v,{
 "provider",
 }))
 
-x.ScriptId=PickField(v,{
+z.ScriptId=PickField(x,{
 "ScriptId",
 "ScriptID",
 "scriptId",
@@ -26457,9 +26480,9 @@ x.ScriptId=PickField(v,{
 "Id",
 "ID",
 "id",
-})or x.ScriptId
+})or z.ScriptId
 
-x.ServiceId=PickField(v,{
+z.ServiceId=PickField(x,{
 "ServiceId",
 "ServiceID",
 "serviceId",
@@ -26470,9 +26493,9 @@ x.ServiceId=PickField(v,{
 "Id",
 "ID",
 "id",
-})or x.ServiceId
+})or z.ServiceId
 
-x.Discord=PickField(v,{
+z.Discord=PickField(x,{
 "Discord",
 "discord",
 "DiscordURL",
@@ -26484,33 +26507,33 @@ x.Discord=PickField(v,{
 "URL",
 "Url",
 "url",
-})or x.Discord
+})or z.Discord
 
-x.Secret=PickField(v,{
+z.Secret=PickField(x,{
 "Secret",
 "secret",
 "ApiSecret",
 "APISecret",
 "apiSecret",
 "api_secret",
-})or x.Secret
+})or z.Secret
 
-x.ApiKey=PickField(v,{
+z.ApiKey=PickField(x,{
 "ApiKey",
 "APIKey",
 "apiKey",
 "api_key",
 "Key",
 "key",
-})or x.ApiKey
+})or z.ApiKey
 
-if x.Type and x.Type~=""then
-table.insert(r,x)
+if z.Type and z.Type~=""then
+table.insert(u,z)
 end
 end
 end
 
-aB.KeySystem.API=r
+aB.KeySystem.API=u
 end
 
 NormalizeKeySystemAPI()
@@ -26519,19 +26542,19 @@ if aB.KeySystem then
 d=false
 
 local function loadKeysystem()
-ar.new(aB,l,function(m)
-d=m
+ar.new(aB,m,function(p)
+d=p
 end)
 end
 
-local m=(aB.Folder or"Temp").."/"..l..".key"
+local p=(aB.Folder or"Temp").."/"..m..".key"
 
 if aB.KeySystem.KeyValidator then
-if aB.KeySystem.SaveKey and isfile(m)then
-local p=readfile(m)
-local r,u=pcall(aB.KeySystem.KeyValidator,p)
+if aB.KeySystem.SaveKey and isfile(p)then
+local r=readfile(p)
+local u,v=pcall(aB.KeySystem.KeyValidator,r)
 
-if r and u then
+if u and v then
 d=true
 else
 loadKeysystem()
@@ -26540,12 +26563,12 @@ else
 loadKeysystem()
 end
 elseif not aB.KeySystem.API then
-if aB.KeySystem.SaveKey and isfile(m)then
-local p=readfile(m)
-local r=(type(aB.KeySystem.Key)=="table")and table.find(aB.KeySystem.Key,p)
-or tostring(aB.KeySystem.Key)==tostring(p)
+if aB.KeySystem.SaveKey and isfile(p)then
+local r=readfile(p)
+local u=(type(aB.KeySystem.Key)=="table")and table.find(aB.KeySystem.Key,r)
+or tostring(aB.KeySystem.Key)==tostring(r)
 
-if r then
+if u then
 d=true
 else
 loadKeysystem()
@@ -26554,34 +26577,34 @@ else
 loadKeysystem()
 end
 else
-if isfile(m)then
-local p=readfile(m)
-local r=false
+if isfile(p)then
+local r=readfile(p)
+local u=false
 
-for u,v in next,aB.KeySystem.API do
-local x=aa.Services[v.Type]
-if x then
-local z={}
-for A,B in next,x.Args do
-table.insert(z,v[B])
+for v,x in next,aB.KeySystem.API do
+local z=aa.Services[x.Type]
+if z then
+local A={}
+for B,C in next,z.Args do
+table.insert(A,x[C])
 end
 
-local A,B=pcall(function()
-return x.New(table.unpack(z))
+local B,C=pcall(function()
+return z.New(table.unpack(A))
 end)
-local C,F=false,false
-if A and B and type(B.Verify)=="function"then
-C,F=pcall(B.Verify,p)
+local F,G=false,false
+if B and C and type(C.Verify)=="function"then
+F,G=pcall(C.Verify,r)
 end
-if C and F then
-r=true
+if F and G then
+u=true
 break
 end
 end
 end
 
-d=r
-if not r then
+d=u
+if not u then
 loadKeysystem()
 end
 else
@@ -26597,10 +26620,10 @@ OpenLoader("Access granted",0.42)
 end
 
 OpenLoader("Building window",0.72)
-local m=b(aB)
+local p=b(aB)
 
 aa.Transparent=aB.Transparent
-aa.Window=m
+aa.Window=p
 
 if aB.Acrylic then
 av.init()
@@ -26624,7 +26647,7 @@ end
 
 
 
-return m
+return p
 end
 
 return aa

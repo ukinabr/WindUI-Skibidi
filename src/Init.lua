@@ -425,9 +425,16 @@ function WindUI:CreateWindow(Config)
 		OpenLoader("Preparing interface", 0.16)
 	end
 
-	local Theme = WindUI.Themes[Config.Theme or "Dark"]
+	local RequestedTheme = Config.Theme or "Dark"
+	local Theme
+	if typeof(RequestedTheme) == "table" then
+		Theme = RequestedTheme
+	elseif typeof(RequestedTheme) == "string" then
+		Theme = WindUI.Themes[RequestedTheme]
+	end
 
-	--WindUI.Theme = Theme
+	Theme = Theme or WindUI.Theme or WindUI.Themes["Dark"]
+	WindUI.Theme = Theme
 	Creator.SetTheme(Theme)
 
 	local hwid = gethwid or function()
